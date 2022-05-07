@@ -1,0 +1,3 @@
+model:
+  segmentation: unet
+  backbone: efficientnet_b3a
