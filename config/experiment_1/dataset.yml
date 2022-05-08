@@ -1,0 +1,6 @@
+test_mode: false
+batch_size: 16
+shuffle: true
+num_workers: 1
+pin_memory: false
+drop_last: false

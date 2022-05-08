@@ -10,31 +10,27 @@ from typing import List, Optional, Tuple, Union
 from torch.optim.lr_scheduler import _LRScheduler
 
 
-class SegmentationModel(pl.LightningModule):
+
+class RoadSegmentationModule(pl.LightningModule):
     def __init__(
         self,
         model: nn.Module,
         num_classes: int,
         loss: _Loss,
         optimizer: Optimizer,
-        lr_scheduler: Optional[Union[LRDict, _LRScheduler]] = None,
+        lr_scheduler: _LRScheduler = None,
     ) -> None:
-        """Lightning Segmentation Module.
+        """Road Segmentation Lightning Module
 
         Args:
-            model: Model.
-            num_classes: Number of classes, including background (minimum 2).
-            loss: Loss.
-            optimizer: Optimizer.
-            lr_scheduler: Optional; Learning rate scheduler or dictionary containing the
-              scheduler and other parameters such as interval and frequency.
+            model (str): segmentation model name
+            num_classes (int): num classes to predict
+            loss (_Loss): loss
+            optimizer (Optimizer): optimizer
+            lr_scheduler (_LRScheduler, optional): Optional; Learning rate scheduler. Defaults to None.
         """
+        
         super().__init__()
-        if num_classes < 2:
-            raise ValueError(
-                "num_classes must be at least 2, remember to consider the background "
-                f"too (got {num_classes})."
-            )
 
         self.model = model
         self.num_classes = num_classes
@@ -43,11 +39,20 @@ class SegmentationModel(pl.LightningModule):
         self.lr_scheduler = lr_scheduler
         self.configure_metrics()
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:  # type: ignore
+    def forward(self, x: torch.Tensor) -> torch.Tensor:  
         # Output a tensor of shape (batch size, num classes, height, width)
         return self.model(x)
 
     def training_step(self, batch: torch.Tensor, batch_idx: int) -> float:
+        """Training step
+
+        Args:
+            batch (torch.Tensor): batch of images and masks
+            batch_idx (int): batch index
+
+        Returns:
+            float: loss value
+        """
         x, y = batch
         # Unnormalized scores
         out = self(x)
@@ -57,13 +62,21 @@ class SegmentationModel(pl.LightningModule):
         return loss
 
     def evaluate(self, batch: torch.Tensor, stage: Literal["val", "test"]) -> None:
+        """Evaluation step
+
+        Args:
+            batch (torch.Tensor): validation batch of imaegs and masks
+            stage (Literal[&quot;val&quot;, &quot;test&quot;]): stage
+        """
         x, y = batch
         # Logits (unnormalized predictions)
         logits = self(x)
         # Predictions
         preds = self.preds_from_logits(logits)
+        
         # Loss
         loss = self.loss(logits, y)
+        
         self.log(f"loss/{stage}", loss, sync_dist=True)
         # IoU
         iou = getattr(self, f"{stage}_iou")
@@ -74,17 +87,27 @@ class SegmentationModel(pl.LightningModule):
         for class_idx, value in enumerate(classwise_iou(preds, y)):
             self.log(f"iou/{class_idx}/{stage}", value, prog_bar=True, sync_dist=True)
 
-    def validation_step(  # type: ignore
-        self, batch: torch.Tensor, batch_idx: int
-    ) -> None:
+    def validation_step(self, batch: torch.Tensor, batch_idx: int) -> None:
+        """Validation step
+
+        Args:
+            batch (torch.Tensor): batch of images and masks
+            batch_idx (int): batch index
+
+        """
         self.evaluate(batch, stage="val")
 
-    def test_step(self, batch: torch.Tensor, batch_idx: int) -> None:  # type: ignore
+    def test_step(self, batch: torch.Tensor, batch_idx: int) -> None:
+        """Test step
+
+        Args:
+            batch (torch.Tensor): batch of images and masks
+            batch_idx (int): batch index
+
+        """
         self.evaluate(batch, stage="test")
 
-    def predict_step(  # type: ignore
-        self, batch: torch.Tensor, batch_idx: int, dataloader_idx: int = None
-    ) -> torch.Tensor:
+    def predict_step(self, batch: torch.Tensor, batch_idx: int, dataloader_idx: int = None) -> torch.Tensor:
         # Logits (unnormalized predictions)
         logits = self(batch)
         # Predictions
@@ -105,11 +128,7 @@ class SegmentationModel(pl.LightningModule):
         self.val_classwise_iou = IoU(num_classes=self.num_classes, reduction="none")
         self.test_classwise_iou = IoU(num_classes=self.num_classes, reduction="none")
 
-    def configure_optimizers(
-        self,
-    ) -> Union[
-        List[Optimizer], Tuple[List[Optimizer], List[Union[LRDict, _LRScheduler]]]
-    ]:
+    def configure_optimizers(self,) -> Union[List[Optimizer], Tuple[List[Optimizer], List[_LRScheduler]]]:
         if self.lr_scheduler is None:
             return [self.optimizer]
         else:

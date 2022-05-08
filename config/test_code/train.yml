@@ -1,0 +1,39 @@
+trainer:
+  accelerator: null
+  gpus: 0
+  gradient_clip_val: 5.0
+  log_gpu_memory: true
+  progress_bar_refresh_rate: null
+  max_epochs: 5
+
+callbacks:
+  ## model checkpoint ##
+  monitor: loss/val
+  filename: "epoch={epoch}-step={step}-val_loss={loss/val:.3f}-val_iou={iou/all/val:.3f}"
+  verbose: true
+  mode: min
+  save_top_k: 1
+  auto_insert_metric_name: false
+  ## learning rate monitor ##
+  log_momentum: true
+
+logger:
+  name: ''
+  version: lightning_logs
+
+optimizer:
+  algo: sgd
+  lr: 0.8
+  weight_decay: 0.0
+
+loss:
+  fn: jaccard
+  mode: multilabel
+
+scheduler:
+  algo: cosine_annealing_warm
+  t_0: 10
+  t_mult: 2
+  eta_min: 0
+  # interval: epoch
+  # frequency: 1

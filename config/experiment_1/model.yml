@@ -1,0 +1,7 @@
+
+model: unet
+backbone: timm-efficientnet-b3
+weights: imagenet
+input_size:
+  height: 512
+  width: 512

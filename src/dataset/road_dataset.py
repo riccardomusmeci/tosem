@@ -10,18 +10,19 @@ class RoadDataset(Dataset):
     
     CLASSES = ["crack", "lane", "pothole"]
     
-    def __init__(self, data_dir, train=True, transform=None, preprocessing=None):
+    def __init__(self, data_dir, train=True, transform=None, test_mode=False):
         
         data_dir = os.path.join(data_dir, "train" if train else "val")
-        self.images = [os.path.join(data_dir, img, img) for img in os.listdir(data_dir) if img != ".DS_Store"]    
+        self.images = [os.path.join(data_dir, img, img) for img in os.listdir(data_dir) if img != ".DS_Store"]
+        if test_mode:
+            print("[ALERT] Using dataset in test mode, reducing number of images to 100.")
+            self.images = self.images[:100]
         # convert str names to class values on masks        
         self.transform = transform
-        self.preprocessing = preprocessing
         
     def __getitem__(self, i) -> Tuple[torch.Tensor, torch.Tensor]:
         
         # getting image
-        image_name = self.images[i]
         image = cv2.imread(f"{self.images[i]}_RAW.jpg")
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         
@@ -37,8 +38,9 @@ class RoadDataset(Dataset):
             sample = self.transform(image=image, mask=mask)
             image, mask = sample['image'], sample['mask']
         
+        # casting to Torch.Tensor
         image = torch.from_numpy(image.transpose(2, 0, 1))
-        mask = torch.from_numpy(mask.transpose(2, 0, 1))
+        mask = torch.from_numpy(mask.transpose(2, 0, 1)).long()
         
         return image, mask
         
