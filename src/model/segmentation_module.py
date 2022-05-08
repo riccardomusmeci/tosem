@@ -31,7 +31,7 @@ class RoadSegmentationModule(pl.LightningModule):
         """
         
         super().__init__()
-
+        self.save_hyperparameters()
         self.model = model
         self.num_classes = num_classes
         self.loss = loss
@@ -76,7 +76,6 @@ class RoadSegmentationModule(pl.LightningModule):
         
         # Loss
         loss = self.loss(logits, y)
-        
         self.log(f"loss/{stage}", loss, sync_dist=True)
         # IoU
         iou = getattr(self, f"{stage}_iou")

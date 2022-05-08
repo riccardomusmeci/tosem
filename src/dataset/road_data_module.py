@@ -10,6 +10,7 @@ class RoadDataModule(pl.LightningDataModule):
     def __init__(
         self, 
         data_dir: str, 
+        classes: List[str],
         batch_size: int, 
         train_transform: Callable, 
         val_transform: Callable,
@@ -21,6 +22,7 @@ class RoadDataModule(pl.LightningDataModule):
     ):
         super().__init__()
         self.data_dir = data_dir
+        self.classes = classes
         self.batch_size = batch_size
         self.train_transform = train_transform
         self.val_transform = val_transform
@@ -29,6 +31,7 @@ class RoadDataModule(pl.LightningDataModule):
         self.pin_memory = pin_memory
         self.drop_last = drop_last
         self.test_mode = test_mode
+        
         
     def prepare_data(self) -> None:  # type: ignore
         pass
@@ -42,6 +45,7 @@ class RoadDataModule(pl.LightningDataModule):
         if stage == "fit" or stage is None:
             self.train_dataset = RoadDataset(
                 data_dir=self.data_dir,
+                classes=self.classes,
                 train=True,
                 transform=self.train_transform,
                 test_mode=self.test_mode
@@ -49,6 +53,7 @@ class RoadDataModule(pl.LightningDataModule):
             
             self.val_dataset = RoadDataset(
                 data_dir=self.data_dir,
+                classes=self.classes,
                 train=False,
                 transform=self.val_transform,
                 test_mode=self.test_mode
@@ -57,6 +62,7 @@ class RoadDataModule(pl.LightningDataModule):
         if stage == "test" or stage is None:
             self.test_dataset = RoadDataset(
                 data_dir=self.data_dir,
+                classes=self.classes,
                 train=False,
                 transform=self.val_transform,
                 test_mode=self.test_mode

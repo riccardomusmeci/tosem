@@ -3,8 +3,7 @@ trainer:
   gpus: 1
   gradient_clip_val: 5.0
   log_gpu_memory: true
-  progress_bar_refresh_rate: null
-  max_epochs: 100
+  max_epochs: 300
 
 callbacks:
   ## model checkpoint ##
@@ -24,7 +23,8 @@ logger:
 optimizer:
   algo: sgd
   lr: 0.8
-  weight_decay: 0.0
+  momentum: 0.9
+  weight_decay: 0.1
 
 loss:
   fn: jaccard
@@ -35,5 +35,5 @@ scheduler:
   t_0: 10
   t_mult: 2
   eta_min: 0
-  # interval: epoch
-  # frequency: 1
+  verbose: true
+

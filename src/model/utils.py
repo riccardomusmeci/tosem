@@ -1,5 +1,8 @@
+import ssl
 import torch
 import segmentation_models_pytorch as smp
+
+ssl._create_default_https_context = ssl._create_unverified_context
 
 models = {
     "unet": smp.Unet,

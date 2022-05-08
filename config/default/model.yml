@@ -1,6 +1,6 @@
 input_size:
-  height: 224
-  width: 224
+  height: 512
+  width: 512
 
 model: unet
 backbone: timm-efficientnet-b3

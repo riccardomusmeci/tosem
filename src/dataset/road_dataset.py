@@ -1,33 +1,36 @@
 import os
-from typing import Tuple
 import cv2
 import torch
 import numpy as np
+from typing import List, Tuple
+from src.io.io import read_rgb
 from torch.utils.data import Dataset
 
 
 class RoadDataset(Dataset):
     
-    CLASSES = ["crack", "lane", "pothole"]
-    
-    def __init__(self, data_dir, train=True, transform=None, test_mode=False):
+    def __init__(self, data_dir, classes: List[str], train=True, transform=None, test_mode=False):
         
         data_dir = os.path.join(data_dir, "train" if train else "val")
         self.images = [os.path.join(data_dir, img, img) for img in os.listdir(data_dir) if img != ".DS_Store"]
         if test_mode:
-            print("[ALERT] Using dataset in test mode, reducing number of images to 100.")
-            self.images = self.images[:100]
+            print("[ALERT] Using dataset in test mode, reducing number of images to 32.")
+            self.images = self.images[:32]
+        
+        if classes is None:
+            print("Plase specify at least one class among crack, lane and pothole.}")
+            quit()
+        self.classes = classes
         # convert str names to class values on masks        
         self.transform = transform
         
     def __getitem__(self, i) -> Tuple[torch.Tensor, torch.Tensor]:
         
         # getting image
-        image = cv2.imread(f"{self.images[i]}_RAW.jpg")
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        
+        image = read_rgb(f"{self.images[i]}_RAW.jpg")
+    
         # creating masks
-        masks = [cv2.imread(f"{self.images[i]}_{c.upper()}.png") for c in self.CLASSES]
+        masks = [cv2.imread(f"{self.images[i]}_{c.upper()}.png") for c in self.classes]
         for i, mask in enumerate(masks):
             mask = mask == 255
             masks[i] = mask[..., 0]

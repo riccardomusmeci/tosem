@@ -1,5 +1,6 @@
+classes: ["crack", "lane"]
 test_mode: true
-batch_size: 16
+batch_size: 4
 shuffle: true
 num_workers: 5
 pin_memory: false
