@@ -63,8 +63,8 @@ def train(args: argparse.Namespace):
     )
     
     ### Callbacks and Logger for Trainer ###
-    callbacks = get_callbacks(output_dir=os.path.join(output_dir, "checkpoints"))
-    logger = get_logger(output_dir=os.path.join(output_dir, "tensorboard"))
+    callbacks = get_callbacks(output_dir=output_dir)
+    logger = get_logger(output_dir=output_dir)
     
     ### Trainer
     trainer = pl.Trainer(
