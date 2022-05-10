@@ -18,7 +18,6 @@ class RoadDataModule(pl.LightningDataModule):
         num_workers: int = 1,
         pin_memory: bool = False,
         drop_last: bool = False,
-        test_mode: bool = False
     ):
         super().__init__()
         self.data_dir = data_dir
@@ -29,9 +28,7 @@ class RoadDataModule(pl.LightningDataModule):
         self.shuffle = shuffle
         self.num_workers = num_workers
         self.pin_memory = pin_memory
-        self.drop_last = drop_last
-        self.test_mode = test_mode
-        
+        self.drop_last = drop_last            
         
     def prepare_data(self) -> None:  # type: ignore
         pass
@@ -48,7 +45,6 @@ class RoadDataModule(pl.LightningDataModule):
                 classes=self.classes,
                 train=True,
                 transform=self.train_transform,
-                test_mode=self.test_mode
             )
             
             self.val_dataset = RoadDataset(
@@ -56,7 +52,6 @@ class RoadDataModule(pl.LightningDataModule):
                 classes=self.classes,
                 train=False,
                 transform=self.val_transform,
-                test_mode=self.test_mode
             )
             
         if stage == "test" or stage is None:
@@ -64,8 +59,7 @@ class RoadDataModule(pl.LightningDataModule):
                 data_dir=self.data_dir,
                 classes=self.classes,
                 train=False,
-                transform=self.val_transform,
-                test_mode=self.test_mode
+                transform=self.val_transform
             )
             
     def train_dataloader(self) -> Union[DataLoader, List[DataLoader], Dict[str, DataLoader]]:

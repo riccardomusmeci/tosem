@@ -6,11 +6,12 @@ ssl._create_default_https_context = ssl._create_unverified_context
 
 models = {
     "unet": smp.Unet,
-    "deeplab": smp.DeepLabV3
+    "deeplabv3": smp.DeepLabV3,
+    "deeplabv3+": smp.DeepLabV3Plus
 }
 
 def segmentation_model(
-    model: str, 
+    arch: str, 
     backbone: str, 
     num_classes: int, 
     in_channels: int = 3, 
@@ -19,7 +20,7 @@ def segmentation_model(
     """returns a segmentation model
 
     Args:
-        model (str): segmentation model name (e.g. Unet, DeepLab)
+        arch (str): segmentation model name (e.g. Unet, DeepLab)
         backbone (str): choose backbone for the model encoder, e.g. mobilenet_v2 or efficientnet-b3
         num_classes (int): model output channels (number of classes in your dataset).
         in_channels (int, optional): model input channels (1 for gray-scale images, 3 for RGB, etc.). Defaults to 3.
@@ -28,8 +29,8 @@ def segmentation_model(
     Returns:
         smp.SegmentationModel: segmentation model
     """
-    print(f"> Creating segmentation model {model} - backbone {backbone} - weights from {weights} - num_classes {num_classes}")
-    _model = models[model](
+    print(f"> Creating segmentation model {arch} - backbone {backbone} - weights from {weights} - num_classes {num_classes}")
+    _model = models[arch](
         encoder_name=backbone,
         encoder_weights=weights,
         in_channels=in_channels,

@@ -1,6 +1,7 @@
 
+from numpy import mask_indices
 import torch
-from torch import nn
+from torch import logit, nn
 from torchmetrics import IoU
 import pytorch_lightning as pl
 from torch.optim import Optimizer
@@ -33,11 +34,14 @@ class RoadSegmentationModule(pl.LightningModule):
         super().__init__()
         self.save_hyperparameters()
         self.model = model
-        self.num_classes = num_classes
+        self.num_classes = num_classes + 1 # for the background
         self.loss = loss
         self.optimizer = optimizer
         self.lr_scheduler = lr_scheduler
-        self.configure_metrics()
+        
+        # 0 is backgrounf
+        self.IoU = IoU(num_classes=self.num_classes, ignore_index=0) 
+        self.classwise_IoU = IoU(num_classes=self.num_classes, reduction="none")
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:  
         # Output a tensor of shape (batch size, num classes, height, width)
@@ -53,38 +57,14 @@ class RoadSegmentationModule(pl.LightningModule):
         Returns:
             float: loss value
         """
-        x, y = batch
+        x, mask = batch
         # Unnormalized scores
-        out = self(x)
-        # Loss
-        loss = self.loss(out, y)
-        self.log("loss/train", loss, sync_dist=True)
-        return loss
-
-    def evaluate(self, batch: torch.Tensor, stage: Literal["val", "test"]) -> None:
-        """Evaluation step
-
-        Args:
-            batch (torch.Tensor): validation batch of imaegs and masks
-            stage (Literal[&quot;val&quot;, &quot;test&quot;]): stage
-        """
-        x, y = batch
-        # Logits (unnormalized predictions)
         logits = self(x)
-        # Predictions
-        preds = self.preds_from_logits(logits)
-        
         # Loss
-        loss = self.loss(logits, y)
-        self.log(f"loss/{stage}", loss, sync_dist=True)
-        # IoU
-        iou = getattr(self, f"{stage}_iou")
-        iou(preds, y)
-        self.log(f"iou/all/{stage}", iou, prog_bar=True)
-        # Class-wise IoU
-        classwise_iou = getattr(self, f"{stage}_classwise_iou")
-        for class_idx, value in enumerate(classwise_iou(preds, y)):
-            self.log(f"iou/{class_idx}/{stage}", value, prog_bar=True, sync_dist=True)
+        loss = self.loss(logits, mask)
+        self.log("loss/train", loss, sync_dist=True)
+        self.log("lr", self.lr_scheduler.get_last_lr()[0], prog_bar=True)
+        return loss
 
     def validation_step(self, batch: torch.Tensor, batch_idx: int) -> None:
         """Validation step
@@ -94,24 +74,20 @@ class RoadSegmentationModule(pl.LightningModule):
             batch_idx (int): batch index
 
         """
-        self.evaluate(batch, stage="val")
-
-    def test_step(self, batch: torch.Tensor, batch_idx: int) -> None:
-        """Test step
-
-        Args:
-            batch (torch.Tensor): batch of images and masks
-            batch_idx (int): batch index
-
-        """
-        self.evaluate(batch, stage="test")
-
-    def predict_step(self, batch: torch.Tensor, batch_idx: int, dataloader_idx: int = None) -> torch.Tensor:
-        # Logits (unnormalized predictions)
-        logits = self(batch)
-        # Predictions
+        x, mask = batch
+        
+        logits = self(x)
         preds = self.preds_from_logits(logits)
-        return preds
+        
+        # loss + IoU
+        loss = self.loss(logits, mask)
+        iou = self.IoU(preds, mask)
+        
+        self.log("loss/val", loss, sync_dist=True)
+        self.log("IoU/all/val", iou, prog_bar=True)
+        for class_idx, value in enumerate(self.classwise_IoU(preds, mask)):
+            self.log(f"IoU/class-{class_idx}/val", value, prog_bar=True, sync_dist=True)
+
 
     def preds_from_logits(self, logits: torch.Tensor) -> torch.Tensor:
         if self.num_classes == 2:
@@ -120,12 +96,6 @@ class RoadSegmentationModule(pl.LightningModule):
             preds = torch.softmax(logits, dim=1)
 
         return preds
-
-    def configure_metrics(self) -> None:
-        self.val_iou = IoU(num_classes=self.num_classes)
-        self.test_iou = IoU(num_classes=self.num_classes)
-        self.val_classwise_iou = IoU(num_classes=self.num_classes, reduction="none")
-        self.test_classwise_iou = IoU(num_classes=self.num_classes, reduction="none")
 
     def configure_optimizers(self,) -> Union[List[Optimizer], Tuple[List[Optimizer], List[_LRScheduler]]]:
         if self.lr_scheduler is None:

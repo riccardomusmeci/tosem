@@ -1,32 +1,35 @@
-from fileinput import filename
-import pytorch_lightning
+import os
 from typing import List
+import pytorch_lightning
 from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor
 
-def get_callbacks(
-    output_dir: str,
-    filename: str,
-    monitor: str,
-    verbose: bool,
-    save_top_k: int,
-    mode: str,
-    auto_insert_metric_name: bool,
-    log_momentum: bool
-     
-    ) -> List[pytorch_lightning.Callback]:
-    
-    model_checkpoint = ModelCheckpoint(
-        dirpath=output_dir,
-        filename=filename,
-        monitor=monitor,
-        verbose=verbose,
-        mode=mode,
-        save_top_k=save_top_k,
-        auto_insert_metric_name=auto_insert_metric_name
+def get_callbacks(output_dir: str) -> List[pytorch_lightning.Callback]:
+    """Returns list of pl.Callbacks
+
+    Args:
+        output_dir (str): output dir
+
+    Returns:
+        List[pytorch_lightning.Callback]: list of pl.Callbacks
+    """
+    callbacks = []
+    callbacks.append(
+        ModelCheckpoint(
+            dirpath=os.path.join(output_dir, "checkpoint"),
+            filename="epoch={epoch}-step={step}-val_loss={loss/val:.3f}-val_iou={IoU/all/val:.3f}",
+            monitor="loss/val",
+            verbose=True,
+            mode="min",
+            save_top_k=1,
+            auto_insert_metric_name=False
+        )
     )
     
-    learning_rate_monitor = LearningRateMonitor(
-        log_momentum=log_momentum
+    callbacks.append(
+         LearningRateMonitor(
+             logging_interval="epoch",
+             log_momentum=True
+        )
     )
     
-    return [model_checkpoint, learning_rate_monitor]
+    return callbacks

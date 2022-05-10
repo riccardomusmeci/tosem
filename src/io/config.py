@@ -20,7 +20,24 @@ def load_yml(path: str) -> Dict:
             quit()
     return params
 
-def load_config(config_dir: str):
+def load_config(path: str) -> Dict:
+    """loads a single yml file
+
+    Args:
+        path (str): path to yml file
+
+    Returns:
+        Dict: yml dict
+    """
+    with open(path, "r") as stream:
+        try:
+            params = yaml.safe_load(stream)
+        except yaml.YAMLError as exc:
+            print(exc)
+            quit()
+    return params
+
+def load_configs(config_dir: str):
     
     # loading configurations for transform, model and train
     transform_config = load_yml(path=os.path.join(config_dir, "transform.yml"))

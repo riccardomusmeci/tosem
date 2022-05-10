@@ -1,17 +1,17 @@
+from turtle import width
 import torch
 import numpy as np
 import albumentations as A
-from typing import Callable
+from typing import Callable, Union
 
 def train_transforms(
+    input_size: Union[int, list, tuple],
     hflip_p: float = .5,
     scale_limit: float = .5,
     rotate_limit: float = 0,
     shift_limit: float = .1,
     shif_scale_rotate_p: float = 1,
     border_mode: float = 0,
-    height: int = 320,
-    width: int = 320, 
     gauss_noise_p: float = .5,
     perspective_p: float = .5,
     one_of_p: float = .9,
@@ -19,6 +19,13 @@ def train_transforms(
     mean=[0.485, 0.456, 0.406],
     std=[0.229, 0.224, 0.225],
 ):
+    
+    if isinstance(input_size, tuple) or isinstance(input_size, list):
+        height = input_size[0]
+        width = input_size[1]
+    else:
+        height = input_size
+        width = input_size
     
     augs = [
         
@@ -80,12 +87,18 @@ def train_transforms(
     return A.Compose(augs)
 
 def val_transform(
-    height: int = 320,
-    width: int = 320,
+    input_size: Union[int, list, tuple],
     mean=[0.485, 0.456, 0.406],
     std=[0.229, 0.224, 0.225],
     ) -> A.Compose:
 
+    if isinstance(input_size, tuple) or isinstance(input_size, list):
+        height = input_size[0]
+        width = input_size[1]
+    else:
+        height = input_size
+        width = input_size
+    
     augs = [
         A.PadIfNeeded(
             min_height=height, 
@@ -104,15 +117,14 @@ def val_transform(
     return A.Compose(augs)
 
 def transform(
-    train=True,
+    train: bool,
+    input_size: Union[int, list, tuple],
     hflip_p: float = .5,
     scale_limit: float = .5,
     rotate_limit: float = 0,
     shift_limit: float = .1,
     shif_scale_rotate_p: float = 1,
     border_mode: float = 0,
-    height: int = 320,
-    width: int = 320, 
     gauss_noise_p: float = .5,
     perspective_p: float = .5,
     one_of_p: float = .9,
@@ -131,14 +143,13 @@ def transform(
     
     if train:
         return train_transforms(
+            input_size=input_size,
             hflip_p=hflip_p,
             scale_limit=scale_limit,
             rotate_limit=rotate_limit,
             shift_limit=shift_limit,
             shif_scale_rotate_p=shif_scale_rotate_p,
             border_mode=border_mode,
-            height=height,
-            width=width, 
             gauss_noise_p=gauss_noise_p,
             perspective_p=perspective_p,
             one_of_p=one_of_p,
@@ -148,8 +159,7 @@ def transform(
         )
     else:
         return val_transform(
-            height=height,
-            width=width,
+            input_size=input_size,
             mean=mean,
             std=std
         )

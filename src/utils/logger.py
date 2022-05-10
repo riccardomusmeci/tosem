@@ -1,6 +1,7 @@
+import os
 from pytorch_lightning.loggers import TensorBoardLogger, LightningLoggerBase
 
-def get_logger(output_dir: str, name: str, version: str):
+def get_logger(output_dir: str) -> LightningLoggerBase:
     """returns a logger
 
     Args:
@@ -12,7 +13,5 @@ def get_logger(output_dir: str, name: str, version: str):
         pytorch_lightning.loggers.LightningLoggerBase: logger
     """
     return TensorBoardLogger(
-        save_dir=output_dir,
-        name=name,
-        version=version
+        save_dir=os.path.join(output_dir, "tensorboard")
     )

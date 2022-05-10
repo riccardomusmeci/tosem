@@ -1,9 +1,27 @@
-
-
+import os
 import cv2
+import yaml
 import torch
 import numpy as np
+from PIL import Image
 from typing import Dict
+
+def load_config(path: str) -> Dict:
+    """loads a single yml file
+
+    Args:
+        path (str): path to yml file
+
+    Returns:
+        Dict: yml dict
+    """
+    with open(path, "r") as stream:
+        try:
+            params = yaml.safe_load(stream)
+        except yaml.YAMLError as exc:
+            print(exc)
+            quit()
+    return params
 
 def load_state_dict_from_ckpt(ckpt_path: str) -> Dict:
     """laods a state dict from ckpt file
@@ -22,15 +40,21 @@ def load_state_dict_from_ckpt(ckpt_path: str) -> Dict:
         state_dict[l] = weights
     return state_dict
 
-def read_rgb(img_path: str) -> np.array:
-    """reads an image in RGB mode
-
-    Args:
-        img_path (str): path to image
-
-    Returns:
-        np.array: rgb image
-    """
-    image = cv2.imread(img_path)
-    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+def read_gray(file_path: str) -> np.ndarray:
+    if not os.path.exists(file_path):
+        print("qua dentro")
+        raise ValueError(f"The path {file_path} does not exist")
+    
+    image = Image.open(file_path).convert("L")
+    image = np.array(image, dtype=np.float32)
     return image
+
+
+def read_rgb(file_path: str) -> np.ndarray:
+    if not os.path.exists(file_path):
+        raise ValueError(f"The path {file_path} does not exist")
+
+    image = Image.open(file_path).convert("RGB")
+    image = np.array(image)
+    return image
+    

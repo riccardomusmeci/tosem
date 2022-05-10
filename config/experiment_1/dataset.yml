@@ -1,7 +1,0 @@
-classes: ["crack", "pothole"]
-test_mode: false
-batch_size: 32
-shuffle: true
-num_workers: 2
-pin_memory: false
-drop_last: false

@@ -22,13 +22,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--output-dir",
         type=str,
-        default=os.environ["SM_OUTPUT_DATA_DIR"],
         help="local directory where the best model checkpoint is saved at the end of training. Default set to SM_OUTPUT_DATA_DIR env var."
     )
     
     parser.add_argument(
         "--data-dir",
-        default=os.environ["SM_INPUT_DATA_DIR"],
         metavar="N",
         help="Input data dir path. Default se to SM_INPUT_DATA_DIR env var."
     )

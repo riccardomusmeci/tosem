@@ -1,6 +1,0 @@
-model: unet
-backbone: timm-regnety_002
-weights: imagenet
-input_size:
-  height: 512
-  width: 512
