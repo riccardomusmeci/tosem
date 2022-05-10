@@ -5,6 +5,10 @@ Smart Arrotino: identifying cracks and potholes from road images.
 Smart Arrotino is trained on [Cracks and Potholes in Road Images Dataset](https://github.com/biankatpas/Cracks-and-Potholes-in-Road-Images-Dataset).
 
 
+Input Image                |  Crack-Pothole Prediction
+:-------------------------:|:-------------------------:
+![](static/image.jpg)  |  ![](static/crack_prediction.jpg)
+
 ### **Dataset Preparation**
 In the *notebooks* folder, open the *prepare_road_dataset.ipynb* and specify where the dataset is saved in:
 ```
@@ -13,7 +17,7 @@ dataset_dir = "PATH/TO/YOUR/DATASET"
 Run all the cells to split the dataset into train e validation.
 
 ## **Train**
-Provide training configurations in the *config* folder with the yml file. 
+Provide training configurations in the *config* folder with the yml file.
 
 Define the class you want to predict in the *classes* list, choose one of:
 * lane
