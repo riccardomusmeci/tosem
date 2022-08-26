@@ -1,10 +1,10 @@
 import torch
-from torch import logit, nn
-from torchmetrics import IoU
+from torch import nn
 import pytorch_lightning as pl
 from torch.optim import Optimizer
 from typing import List, Tuple, Union
 from torch.nn.modules.loss import _Loss
+from torchmetrics import JaccardIndex as IoU
 from torch.optim.lr_scheduler import _LRScheduler
 
 
@@ -35,9 +35,8 @@ class SegmentationModule(pl.LightningModule):
         self.optimizer = optimizer
         self.lr_scheduler = lr_scheduler
         
-        # 0 is backgrounf
+        # 0 is background
         self.IoU = IoU(num_classes=self.num_classes, ignore_index=0) 
-        self.classwise_IoU = IoU(num_classes=self.num_classes, reduction="none")
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:  
         # Output a tensor of shape (batch size, num classes, height, width)
@@ -81,15 +80,12 @@ class SegmentationModule(pl.LightningModule):
         
         self.log("loss/val", loss, sync_dist=True)
         self.log("IoU/all/val", iou, prog_bar=True)
-        for class_idx, value in enumerate(self.classwise_IoU(preds, mask)):
-            self.log(f"IoU/class-{class_idx}/val", value, prog_bar=True, sync_dist=True)
-
+        
     def preds_from_logits(self, logits: torch.Tensor) -> torch.Tensor:
         if self.num_classes == 2:
             preds = torch.sigmoid(logits)
         else:
             preds = torch.softmax(logits, dim=1)
-
         return preds
 
     def configure_optimizers(self,) -> Union[List[Optimizer], Tuple[List[Optimizer], List[_LRScheduler]]]:
