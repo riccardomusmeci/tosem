@@ -1,0 +1,25 @@
+
+# =========================== DataModule ==========================
+datamodule:
+  batch_size: 16
+  shuffle: true
+  num_workers: 5
+  drop_last: false
+
+# =========================== Data Augmentations ==========================
+transform:
+  input_size: [512, 512]                                  # model input size (int, list, tuple)
+  hflip_p: .5
+  scale_limit: 0.5
+  rotate_limit: 0
+  shift_limit: 0.1
+  random_crop_p: 0.5
+  shif_scale_rotate_p: 1
+  border_mode: 0
+  gauss_noise_p: 0.5
+  perspective_p: 0.5
+  one_of_p: 0.9
+  blur_limit: 3
+  mean: [0.485, 0.456, 0.406]                             # to not apply normalization put [0, 0, 0]
+  std: [0.229, 0.224, 0.225]                              #  to not apply normalization put [1, 1, 1]
+
