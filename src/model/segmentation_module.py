@@ -1,15 +1,11 @@
-
-from numpy import mask_indices
 import torch
 from torch import logit, nn
 from torchmetrics import IoU
 import pytorch_lightning as pl
 from torch.optim import Optimizer
-from typing_extensions import Literal
+from typing import List, Tuple, Union
 from torch.nn.modules.loss import _Loss
-from typing import List, Optional, Tuple, Union
 from torch.optim.lr_scheduler import _LRScheduler
-
 
 
 class RoadSegmentationModule(pl.LightningModule):
@@ -87,7 +83,6 @@ class RoadSegmentationModule(pl.LightningModule):
         self.log("IoU/all/val", iou, prog_bar=True)
         for class_idx, value in enumerate(self.classwise_IoU(preds, mask)):
             self.log(f"IoU/class-{class_idx}/val", value, prog_bar=True, sync_dist=True)
-
 
     def preds_from_logits(self, logits: torch.Tensor) -> torch.Tensor:
         if self.num_classes == 2:
