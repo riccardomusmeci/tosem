@@ -20,7 +20,7 @@ def get_callbacks(output_dir: str) -> List[pytorch_lightning.Callback]:
             monitor="loss/val",
             verbose=True,
             mode="min",
-            save_top_k=1,
+            save_top_k=5,
             auto_insert_metric_name=False
         )
     )
