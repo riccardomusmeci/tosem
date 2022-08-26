@@ -1,7 +1,13 @@
 from torch.optim import Optimizer
 from torch.optim.lr_scheduler import CosineAnnealingWarmRestarts, CosineAnnealingLR, _LRScheduler
 
-def get_scheduler(optimizer: Optimizer, algo: str, t_0: int, t_mult: int, eta_min: float) -> _LRScheduler:
+def get_scheduler(
+    optimizer: Optimizer, 
+    algorithm: str, 
+    t_0: int, 
+    t_mult: int, 
+    eta_min: float
+) -> _LRScheduler:
     """returns learning rate scheduler
 
     Args:
@@ -14,7 +20,7 @@ def get_scheduler(optimizer: Optimizer, algo: str, t_0: int, t_mult: int, eta_mi
     Returns:
         _LRScheduler: scheduler
     """
-    if algo == "cosine_annealing_warm":
+    if algorithm == "cosine_annealing_warm":
         return CosineAnnealingWarmRestarts(
             optimizer=optimizer,
             T_0=t_0,

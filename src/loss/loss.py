@@ -2,7 +2,7 @@ import torch
 from torch import nn
 from pytorch_toolbelt.losses import JaccardLoss
 
-def loss_fn(criterion: str, **kwargs) -> nn.Module:
+def criterion(criterion: str, **kwargs) -> nn.Module:
     """returns loss for segmentation model
 
     Args:
@@ -12,9 +12,7 @@ def loss_fn(criterion: str, **kwargs) -> nn.Module:
         nn.Module: loss module
     """
     if criterion == "jaccard":
-        return JaccardLoss(
-            **kwargs
-        )
+        return JaccardLoss(**kwargs)
     else:
-        print("Only Jaccard is implemented. Quitting.")
+        print("Only JaccardLoss is implemented. Quitting.")
         quit()
