@@ -40,9 +40,15 @@ def load_state_dict_from_ckpt(ckpt_path: str) -> Dict:
         state_dict[l] = weights
     return state_dict
 
+def read_binary(file_path: str) -> np.ndarray:
+    if not os.path.exists(file_path):
+        raise ValueError(f"The path {file_path} does not exist")
+    image = Image.open(file_path).convert("L")
+    image = np.array(image, dtype=np.float32) / 255
+    return image
+
 def read_gray(file_path: str) -> np.ndarray:
     if not os.path.exists(file_path):
-        print("qua dentro")
         raise ValueError(f"The path {file_path} does not exist")
     
     image = Image.open(file_path).convert("L")
