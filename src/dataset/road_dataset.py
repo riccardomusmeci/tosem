@@ -6,7 +6,6 @@ from torch.utils.data import Dataset
 from typing import Callable, List, Tuple
 from src.io.io import read_rgb, read_binary, read_gray
 
-
 class RoadDataset(Dataset):
     
     def __init__(
@@ -38,6 +37,7 @@ class RoadDataset(Dataset):
         #print(image.shape, mask.shape)
         image = torch.from_numpy(image.transpose(2, 0, 1))
         mask = torch.from_numpy(mask).long()
+        mask = mask.unsqueeze(dim=0)
         
         return image, mask
     
