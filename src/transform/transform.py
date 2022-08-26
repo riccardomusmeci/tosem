@@ -1,8 +1,6 @@
-from turtle import width
-import torch
 import numpy as np
+from typing import Union
 import albumentations as A
-from typing import Callable, Union
 
 def train_transforms(
     input_size: Union[int, list, tuple],
@@ -11,7 +9,8 @@ def train_transforms(
     rotate_limit: float = 0,
     shift_limit: float = .1,
     shif_scale_rotate_p: float = 1,
-    border_mode: float = 0,
+    border_mode: float = 1,
+    random_crop_p: float = .5,
     gauss_noise_p: float = .5,
     perspective_p: float = .5,
     one_of_p: float = .9,
@@ -46,7 +45,8 @@ def train_transforms(
         A.RandomCrop(
             height=height,
             width=width,
-            always_apply=True
+            always_apply=False,
+            p=random_crop_p,
         ),
         A.GaussNoise(p=gauss_noise_p),
         A.Perspective(p=perspective_p),
@@ -75,7 +75,8 @@ def train_transforms(
         ),
         A.Resize(
             height=height,
-            width=width
+            width=width,
+            always_apply=True
         ),
         A.Normalize(
             mean=mean,
