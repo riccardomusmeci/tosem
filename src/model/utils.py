@@ -16,7 +16,7 @@ def segmentation_model(
     num_classes: int, 
     in_channels: int = 3, 
     weights: str = "imagenet",
-    ) -> torch.nn.Module:
+) -> torch.nn.Module:
     """returns a segmentation model
 
     Args:
