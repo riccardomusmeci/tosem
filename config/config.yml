@@ -2,10 +2,10 @@
 trainer:
   accelerator: mps                                        # mps for M1 gpu, cpu, cuda
   devices: 1                                              # number of GPUs to use (mps supports only 1 device)
-  max_epochs: 10                                          # number of training epochs
+  max_epochs: 200                                         # number of training epochs
   precision: 16
   check_val_every_n_epoch: 1
-  gradient_clip_val: 3
+  gradient_clip_val: 3.0
   num_sanity_val_steps: 2
 
 # =========================== DataModule ==========================
@@ -18,7 +18,7 @@ datamodule:
 # =========================== Segmentation Model ==========================
 model:
     model_name: unet                                      # segmentation model name (e.g. unet)
-    backbone: resnet18                                    # backbone for segmentation model (e.g. resnet18)
+    backbone: timm-efficientnet-b3                        # backbone for segmentation model (e.g. resnet18)
     num_classes: 1                                        # number of segmentation classes (LEAVE 1)
     in_channels: 3                                        # number of input image channles
     weights: imagenet                                     # pretrained weight
