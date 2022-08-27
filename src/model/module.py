@@ -36,7 +36,8 @@ class SegmentationModule(pl.LightningModule):
         self.lr_scheduler = lr_scheduler
         
         # 0 is background
-        self.IoU = IoU(num_classes=self.num_classes, ignore_index=0) 
+        # TODO: implement JaccardIndex for MPS support (also classwise)
+        # self.IoU = IoU(num_classes=self.num_classes, ignore_index=0) 
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:  
         # Output a tensor of shape (batch size, num classes, height, width)
@@ -76,10 +77,10 @@ class SegmentationModule(pl.LightningModule):
         
         # loss + IoU
         loss = self.loss(logits, mask)
-        iou = self.IoU(preds, mask)
+        #iou = self.IoU(preds, mask)
         
         self.log("loss/val", loss, sync_dist=True)
-        self.log("IoU/all/val", iou, prog_bar=True)
+        #self.log("IoU/all/val", iou, prog_bar=True)
         
     def preds_from_logits(self, logits: torch.Tensor) -> torch.Tensor:
         if self.num_classes == 2:

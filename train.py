@@ -14,13 +14,15 @@ def parse_args() -> argparse.Namespace:
     
     parser.add_argument(
         "--config",
+        default="config/config.yml",
         type=str,
-        required=True,
+        required=False,
         help="path to the YAML configuration file"
     )
     
     parser.add_argument(
         "--output-dir",
+        default="/Users/riccardomusmeci/Developer/github/output/smart-arrotino/test",
         type=str,
         help="local directory where the best model checkpoint is saved at the end of training. Default set to SM_OUTPUT_DATA_DIR env var."
     )
@@ -28,7 +30,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--data-dir",
         metavar="N",
-        help="Input data dir path. Default se to SM_INPUT_DATA_DIR env var."
+        default="/Users/riccardomusmeci/Developer/data/smart-arrotino/pothole/dataset/split",
+        help="Input data dir path."
     )
     
     parser.add_argument(
@@ -45,6 +48,8 @@ def parse_args() -> argparse.Namespace:
 if __name__ == "__main__":
     args = parse_args()
     train(args=args)
+    
+    
     
     
     
