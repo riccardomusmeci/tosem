@@ -31,8 +31,12 @@ class RoadDataset(Dataset):
         mask = read_binary(file_path=mask_path)
         
         if self.transform:
-            sample = self.transform(image=image, mask=mask)
-            image, mask = sample['image'], sample['mask']
+            try:
+                sample = self.transform(image=image, mask=mask)
+                image, mask = sample['image'], sample['mask']
+            except Exception as e:
+                print(f"Transform on image {image_path} not working. Reason: {e}")
+                quit()
 
         #print(image.shape, mask.shape)
         image = torch.from_numpy(image.transpose(2, 0, 1))
