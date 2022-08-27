@@ -1,7 +1,16 @@
+# =========================== Trainer ==========================
+trainer:
+  accelerator: mps                                        # mps for M1 gpu, cpu, cuda
+  devices: 1                                              # number of GPUs to use (mps supports only 1 device)
+  max_epochs: 10                                          # number of training epochs
+  precision: 16
+  check_val_every_n_epoch: 1
+  gradient_clip_val: 3
+  num_sanity_val_steps: 2
 
 # =========================== DataModule ==========================
 datamodule:
-  batch_size: 16
+  batch_size: 4
   shuffle: true
   num_workers: 5
   drop_last: false
@@ -12,7 +21,26 @@ model:
     backbone: resnet18                                    # backbone for segmentation model (e.g. resnet18)
     num_classes: 1                                        # number of segmentation classes (LEAVE 1)
     in_channels: 3                                        # number of input image channles
-    weights: imagenet                                     # pretrained weights
+    weights: imagenet                                     # pretrained weight
+
+
+# ========================= Loss + Optimizer + LR Scheduler ===========
+loss:
+  criterion: jaccard                                      # loss during training (jaccard is the best)
+  mode: binary                                            # binary, multilabel, multiclass
+
+optimizer:
+  algorithm: sgd                                          # which optimizer to use
+  lr: 0.004                                               # learning rate
+  momentum: 0.9                                           # momentum
+  weight_decay: 0.00005                                   # weight decay
+
+scheduler:
+  algorithm: cosine_annealing_warm                        # learning rate scheduler algorithm   
+  t_0: 10                                                 # number of iterations for the first restart (e.g. 10 means afer 10 epochs)
+  t_mult: 2                                               # a factor increases t_i after a restart
+  eta_min: 0                                              # minimum learning rate
+
 
 # =========================== Data Augmentations ==========================
 transform:
