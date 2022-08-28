@@ -22,7 +22,7 @@ def parse_args() -> argparse.Namespace:
     
     parser.add_argument(
         "--output-dir",
-        default="/Users/riccardomusmeci/Developer/github/output/smart-arrotino/test",
+        default="/Users/riccardomusmeci/Developer/github/output/smart-arrotino/pothole",
         type=str,
         help="local directory where the best model checkpoint is saved at the end of training. Default set to SM_OUTPUT_DATA_DIR env var."
     )

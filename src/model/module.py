@@ -37,7 +37,10 @@ class SegmentationModule(pl.LightningModule):
         
         # 0 is background
         # TODO: implement JaccardIndex for MPS support (also classwise)
-        self.IoU = IoU(num_classes=self.num_classes, ignore_index=0) 
+        if torch.cuda.is_available():
+            self.IoU = IoU(num_classes=self.num_classes, ignore_index=0) 
+        else: 
+            self.IoU = None
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:  
         # Output a tensor of shape (batch size, num classes, height, width)
@@ -77,10 +80,11 @@ class SegmentationModule(pl.LightningModule):
         
         # loss + IoU
         loss = self.loss(logits, mask)
-        iou = self.IoU(preds, mask)
         
         self.log("loss/val", loss, sync_dist=True)
-        self.log("IoU/all/val", iou, prog_bar=True)
+        if self.IoU is not None:
+            iou = self.IoU(preds, mask)
+            self.log("IoU/all/val", iou, prog_bar=True)
         
     def preds_from_logits(self, logits: torch.Tensor) -> torch.Tensor:
         if self.num_classes == 2:

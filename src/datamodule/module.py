@@ -1,8 +1,8 @@
 
 import os
 import pytorch_lightning as pl
+from src.dataset import RoadDataset
 from torch.utils.data import DataLoader
-from src.dataset.road_dataset import RoadDataset
 from typing import Callable, Dict, List, Optional, Union
 
 class RoadDataModule(pl.LightningDataModule):

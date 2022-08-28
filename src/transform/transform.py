@@ -101,10 +101,6 @@ def val_transform(
         width = input_size
     
     augs = [
-        A.PadIfNeeded(
-            min_height=height, 
-            min_width=width
-        ),
         A.Resize(
             height=height,
             width=width
