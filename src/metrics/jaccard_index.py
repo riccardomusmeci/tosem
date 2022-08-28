@@ -1,10 +1,72 @@
+from urllib.parse import ParseResultBytes
 import torch.nn as nn
+from torch import Tensor
+from typing import Optional
+from torchmetrics import JaccardIndex
+
 
 #TODO: classe custom per JaccardIndex
 class JaccardIndex(nn.Module):
     
-    def __init__(self) -> None:
+    def __init__(
+      self,
+      num_classes: int,
+      ignore_index: Optional[int] = None,
+      threshold: float = 0.5,
+      multilabel: bool = False  
+    ) -> None:
         super().__init__()
+        
+        self.num_classes = num_classes
+        self.ignore_index = ignore_index
+        self.threshold = threshold
+        self.multilabel = multilabel
+
+    def forward(self, preds: Tensor, target: Tensor) -> Tensor:
+      """computes IoU for each class
+
+      Args:
+          preds (Tensor): predictions
+          target (Tensor): ground truth target
+
+      Returns:
+          torch(Tensor): IoU for each class
+      """
+      
+      # being sure that preds is binarized
+      preds[preds<self.threshold] = 0
+      preds[preds>=self.threshold] = 1
+      
+      ious=[]
+      for c in range(self.num_classes):
+        if c == self.ignore_index: 
+          ious.append(None)
+        # getting only the class preds and target
+        
+        c_preds = preds[:, c, :, :].contiguous().view(-1)
+        c_target = target[:, c, :, :].contiguous().view(-1)
+        
+        # getting mask indices
+        pred_idxs = c_preds == 1
+        target_idxs = c_target == 1
+        
+        # computing intersection and union 
+        intersection = (pred_idxs[target_idxs]).long().sum().item()
+        union = pred_idxs.long().sum().item() + target_idxs.long().sum().item() - intersection
+        # If there is no ground truth, do not include in evaluation
+        if union == 0:
+          ious.append(float('nan'))
+        else:
+          iou = float(intersection) / float(max(union, 1))
+          ious.append(iou)
+          
+      return ious
+        
+        
+          
+        
+      
+      
         
         
 '''

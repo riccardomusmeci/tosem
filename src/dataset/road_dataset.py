@@ -48,6 +48,10 @@ class RoadDataset(Dataset):
     def __len__(self):
         return len(self.images)
     
+    
+def RoadInferenceDataset(Dataset):
+    pass
+    
 '''
 class RoadDatasetMulti(Dataset):
     

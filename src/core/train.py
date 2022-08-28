@@ -49,5 +49,5 @@ def train(args: argparse.Namespace):
     )
     
     # fit
-    print(f"Launching trainig..")
+    print(f"Launching training..")
     trainer.fit(model=model, datamodule=datamodule)
