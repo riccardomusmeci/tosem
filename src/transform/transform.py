@@ -17,7 +17,7 @@ def train_transforms(
     blur_limit: float = 3,
     mean=[0.485, 0.456, 0.406],
     std=[0.229, 0.224, 0.225],
-):
+) -> A.Compose:
     
     if isinstance(input_size, tuple) or isinstance(input_size, list):
         height = input_size[0]
@@ -91,7 +91,7 @@ def val_transform(
     input_size: Union[int, list, tuple],
     mean=[0.485, 0.456, 0.406],
     std=[0.229, 0.224, 0.225],
-    ) -> A.Compose:
+) -> A.Compose:
 
     if isinstance(input_size, tuple) or isinstance(input_size, list):
         height = input_size[0]
@@ -101,6 +101,12 @@ def val_transform(
         width = input_size
     
     augs = [
+        A.PadIfNeeded(
+            min_height=height,
+            min_width=width,
+            always_apply=True,
+            border_mode=0
+        ),
         A.Resize(
             height=height,
             width=width
@@ -129,7 +135,7 @@ def transform(
     blur_limit: float = 3,
     mean=[0.485, 0.456, 0.406],
     std=[0.229, 0.224, 0.225]
-    ) -> A.Compose:
+) -> A.Compose:
     """returns set of data transformations with Albumentation
 
     Args:

@@ -49,8 +49,38 @@ class RoadDataset(Dataset):
         return len(self.images)
     
     
-def RoadInferenceDataset(Dataset):
-    pass
+class RoadInferenceDataset(Dataset):
+    
+    def __init__(
+        self,
+        data_dir: str,
+        transform: Callable = None
+    ) -> None:
+        
+        self.data_dir = data_dir
+        self.image_paths = [os.path.join(self.data_dir, f) for f in os.listdir(self.data_dir) if f != ".DS_Store"]
+        self.transform = transform
+    
+    def __getitem__(self, index) -> Tuple[torch.Tensor, torch.Tensor]:
+        
+        image_path = self.image_paths[index]
+        
+        image = read_rgb(file_path=image_path)
+        
+        if self.transform:
+            try:
+                image = self.transform(image=image)["image"]
+            except Exception as e:
+                print(f"Transform on image {image_path} failed. Reason: {e}")
+                quit()
+
+        #print(image.shape, mask.shape)
+        image = torch.from_numpy(image.transpose(2, 0, 1))
+        
+        return image
+    
+    def __len__(self):
+        return len(self.image_paths)
     
 '''
 class RoadDatasetMulti(Dataset):

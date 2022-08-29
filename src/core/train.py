@@ -1,5 +1,6 @@
 import os
 import argparse
+from shutil import copy
 from src.utils.time import now
 import pytorch_lightning as pl
 from src.io.io import load_config
@@ -17,6 +18,11 @@ def train(args: argparse.Namespace):
     pl.seed_everything(seed=args.seed, workers=True)
     config = load_config(path=args.config)
     output_dir = os.path.join(args.output_dir, now())
+    
+    # Copying config
+    os.makedirs(output_dir)
+    copy(args.config, os.path.join(output_dir, "config.yml"))
+    
     print(f"Output dir is {output_dir}")
     
     # data module

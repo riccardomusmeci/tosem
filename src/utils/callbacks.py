@@ -17,7 +17,7 @@ def get_callbacks(output_dir: str) -> List[pytorch_lightning.Callback]:
     callbacks.append(
         ModelCheckpoint(
             dirpath=os.path.join(output_dir, "checkpoint"),
-            filename="epoch={epoch}-step={step}-val_loss={loss/val:.3f}",
+            filename="epoch={epoch}-step={step}-val_loss={loss/val:.3f}-val_iou={IoU/all/val:.3f}",
             monitor="loss/val",
             verbose=True,
             mode="min",
@@ -64,3 +64,4 @@ def get_logger(output_dir: str) -> LightningLoggerBase:
     return TensorBoardLogger(
         save_dir=os.path.join(output_dir, "tensorboard")
     )
+    

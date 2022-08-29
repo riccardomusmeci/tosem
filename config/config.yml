@@ -10,14 +10,14 @@ trainer:
 
 # =========================== DataModule ==========================
 datamodule:
-  batch_size: 4
+  batch_size: 8
   shuffle: true
   num_workers: 5
   drop_last: false
 
 # =========================== Segmentation Model ==========================
 model:
-    model_name: unet                                      # segmentation model name (e.g. unet)
+    model_name: deeplabv3                                 # segmentation model name (e.g. unet)
     backbone: resnet18                                    # backbone for segmentation model (e.g. resnet18)
     num_classes: 1                                        # number of segmentation classes (LEAVE 1)
     in_channels: 3                                        # number of input image channles
@@ -30,10 +30,17 @@ loss:
   mode: binary                                            # binary, multilabel, multiclass
 
 optimizer:
-  algorithm: sgd                                          # which optimizer to use
-  lr: 0.004                                               # learning rate
-  momentum: 0.9                                           # momentum
-  weight_decay: 0.00005                                   # weight decay
+  algorithm: sgd                                         # which optimizer to use
+  lr: 0.4                                                # learning rate
+  # SGD params
+  momentum: 0                                             # momentum
+  weight_decay: 0                                         # weight decay
+
+  # AdamW params
+  # betas: [0.9,0.999]
+  # eps: 0.00000001
+  # weight_decay: 0.01
+  # amsgrad: false
 
 scheduler:
   algorithm: cosine_annealing_warm                        # learning rate scheduler algorithm   
