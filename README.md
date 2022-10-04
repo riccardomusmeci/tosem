@@ -1,10 +1,10 @@
 # **smart-arrotino**
 Smart Arrotino: identifying anomalies from road images.
 
-## **Dataset**
+<!-- ## **Dataset**
 Smart Arrotino is trained on:
 * Pothole (Segmentation):  [Cracks and Potholes in Road Images Dataset](https://github.com/biankatpas/Cracks-and-Potholes-in-Road-Images-Dataset) + [Kaggle Pothole](https://www.kaggle.com/datasets/sachinpatel21/pothole-image-dataset) (custom annotated) + photos taken around Italy
-* Cracks (Segmentation): [Cracks and Potholes in Road Images Dataset](https://github.com/biankatpas/Cracks-and-Potholes-in-Road-Images-Dataset)
+* Cracks (Segmentation): [Cracks and Potholes in Road Images Dataset](https://github.com/biankatpas/Cracks-and-Potholes-in-Road-Images-Dataset) -->
 
 
 Input Image                |  Pothole Prediction
@@ -12,7 +12,7 @@ Input Image                |  Pothole Prediction
 ![](static/image.jpg)  |  ![](static/crack_prediction.jpg)
 
 
-## **Important Information**
+<!-- ## **Important Information**
 Currently only pothole segmentation is supported. You can download the dataset from [here](null).
 
 ## **Train**
@@ -45,11 +45,11 @@ Use the *notebooks/inference.ipynb* notebook:
         train=False,
         transform=transform(train=False, input_size=input_size)
     )
-    ```
+    ``` -->
 
 ## **To-Do**
-[ ] custom JaccardIndex for M1 devices
+[ ] dataset improvement
 
-[ ] multi-label segmentation
+[ ] better readme
 
 
