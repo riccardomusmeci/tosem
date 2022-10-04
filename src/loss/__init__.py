@@ -1,0 +1,1 @@
+from .loss import criterion as Criterion

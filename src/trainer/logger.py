@@ -1,7 +1,7 @@
 import os
 from pytorch_lightning.loggers import TensorBoardLogger, LightningLoggerBase
 
-def get_logger(output_dir: str) -> LightningLoggerBase:
+def logger(output_dir: str) -> LightningLoggerBase:
     """returns a logger
 
     Args:

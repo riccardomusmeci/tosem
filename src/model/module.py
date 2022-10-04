@@ -7,7 +7,6 @@ from torch.nn.modules.loss import _Loss
 from torchmetrics import JaccardIndex as IoU
 from torch.optim.lr_scheduler import _LRScheduler
 
-
 class SegmentationModule(pl.LightningModule):
     def __init__(
         self,
@@ -37,11 +36,11 @@ class SegmentationModule(pl.LightningModule):
         
         # 0 is background
         # TODO: implement JaccardIndex for MPS support (also classwise)
-        if torch.cuda.is_available():
-            self.IoU = IoU(num_classes=self.num_classes, ignore_index=0) 
-        else: 
+        if torch.has_mps:
             self.IoU = None
-
+        else:
+            IoU(num_classes=self.num_classes, ignore_index=0) 
+        
     def forward(self, x: torch.Tensor) -> torch.Tensor:  
         # Output a tensor of shape (batch size, num classes, height, width)
         return self.model(x)

@@ -1,7 +1,7 @@
 import torch.nn as nn
 from torch.optim import SGD, AdamW, Optimizer
 
-def get_optimizer(
+def optimizer(
     params: nn.Module, 
     algorithm: str, 
     **kwargs

@@ -1,7 +1,7 @@
 from torch.optim import Optimizer
 from torch.optim.lr_scheduler import CosineAnnealingWarmRestarts, CosineAnnealingLR, _LRScheduler
 
-def get_scheduler(
+def lr_scheduler(
     optimizer: Optimizer, 
     algorithm: str, 
     t_0: int, 

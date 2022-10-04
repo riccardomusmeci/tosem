@@ -1,17 +1,16 @@
 import os
 import argparse
 from shutil import copy
-from src.utils.time import now
+from src.utils import now
+from src.io import load_config
 import pytorch_lightning as pl
-from src.io.io import load_config
+from src.loss import Criterion
+from src.trainer import Callbacks
+from src.optimizer import Optimizer
 from src.transform import Transform
-from src.loss.loss import criterion
+from src.scheduler import LRScheduler
 from src.datamodule import RoadDataModule
-from src.optimizer.optimizer import get_optimizer
-from src.scheduler.scheduler import get_scheduler
 from src.model import create_model, SegmentationModule
-from src.utils.callbacks import get_callbacks, get_logger
-
 
 def train(args: argparse.Namespace):
 
@@ -22,9 +21,7 @@ def train(args: argparse.Namespace):
     # Copying config
     os.makedirs(output_dir)
     copy(args.config, os.path.join(output_dir, "config.yml"))
-    
-    print(f"Output dir is {output_dir}")
-    
+        
     # data module
     datamodule = RoadDataModule(
         data_dir=args.data_dir,
@@ -35,9 +32,9 @@ def train(args: argparse.Namespace):
     
     # creating segmentation model + loss + optimizer + lr_scheduler
     seg_model = create_model(**config["model"])
-    loss = criterion(**config["loss"])
-    optimizer = get_optimizer(params=seg_model.parameters(), **config["optimizer"])
-    lr_scheduler = get_scheduler(optimizer=optimizer, **config["scheduler"])
+    loss = Criterion(**config["loss"])
+    optimizer = Optimizer(params=seg_model.parameters(), **config["optimizer"])
+    lr_scheduler = LRScheduler(optimizer=optimizer, **config["scheduler"])
     
     # segmentation pl.LightningModule
     # TODO: verifica la dimensione della maschera
@@ -50,8 +47,10 @@ def train(args: argparse.Namespace):
     )
     
     # lightning callbacks
-    callbacks = get_callbacks(output_dir=output_dir)
-    #logger = get_logger(output_dir=output_dir)
+    callbacks = Callbacks(
+        output_dir=output_dir,
+        **config["callbacks"]
+    )
      
     # trainer
     trainer = pl.Trainer(

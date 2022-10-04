@@ -1,5 +1,3 @@
-
-import os
 import pytorch_lightning as pl
 from src.dataset import RoadDataset
 from torch.utils.data import DataLoader
