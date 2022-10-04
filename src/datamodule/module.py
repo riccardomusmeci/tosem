@@ -1,8 +1,6 @@
-from cgi import test
-import os
 import pytorch_lightning as pl
+from src.dataset import RoadDataset
 from torch.utils.data import DataLoader
-from src.dataset.road_dataset import RoadDataset
 from typing import Callable, Dict, List, Optional, Union
 
 class RoadDataModule(pl.LightningDataModule):
@@ -10,7 +8,6 @@ class RoadDataModule(pl.LightningDataModule):
     def __init__(
         self, 
         data_dir: str, 
-        classes: List[str],
         batch_size: int, 
         train_transform: Callable, 
         val_transform: Callable,
@@ -21,7 +18,6 @@ class RoadDataModule(pl.LightningDataModule):
     ):
         super().__init__()
         self.data_dir = data_dir
-        self.classes = classes
         self.batch_size = batch_size
         self.train_transform = train_transform
         self.val_transform = val_transform
@@ -42,14 +38,12 @@ class RoadDataModule(pl.LightningDataModule):
         if stage == "fit" or stage is None:
             self.train_dataset = RoadDataset(
                 data_dir=self.data_dir,
-                classes=self.classes,
                 train=True,
                 transform=self.train_transform,
             )
             
             self.val_dataset = RoadDataset(
                 data_dir=self.data_dir,
-                classes=self.classes,
                 train=False,
                 transform=self.val_transform,
             )
@@ -57,7 +51,6 @@ class RoadDataModule(pl.LightningDataModule):
         if stage == "test" or stage is None:
             self.test_dataset = RoadDataset(
                 data_dir=self.data_dir,
-                classes=self.classes,
                 train=False,
                 transform=self.val_transform
             )

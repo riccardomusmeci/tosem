@@ -1,8 +1,6 @@
-from turtle import width
-import torch
 import numpy as np
+from typing import Union
 import albumentations as A
-from typing import Callable, Union
 
 def train_transforms(
     input_size: Union[int, list, tuple],
@@ -10,15 +8,16 @@ def train_transforms(
     scale_limit: float = .5,
     rotate_limit: float = 0,
     shift_limit: float = .1,
-    shif_scale_rotate_p: float = 1,
-    border_mode: float = 0,
+    shift_scale_rotate_p: float = 1,
+    border_mode: float = 1,
+    random_crop_p: float = .5,
     gauss_noise_p: float = .5,
     perspective_p: float = .5,
     one_of_p: float = .9,
     blur_limit: float = 3,
     mean=[0.485, 0.456, 0.406],
     std=[0.229, 0.224, 0.225],
-):
+) -> A.Compose:
     
     if isinstance(input_size, tuple) or isinstance(input_size, list):
         height = input_size[0]
@@ -34,7 +33,7 @@ def train_transforms(
             scale_limit=scale_limit,
             rotate_limit=rotate_limit,
             shift_limit=shift_limit,
-            p=shif_scale_rotate_p,
+            p=shift_scale_rotate_p,
             border_mode=border_mode,
         ),
         A.PadIfNeeded(
@@ -46,7 +45,8 @@ def train_transforms(
         A.RandomCrop(
             height=height,
             width=width,
-            always_apply=True
+            always_apply=False,
+            p=random_crop_p,
         ),
         A.GaussNoise(p=gauss_noise_p),
         A.Perspective(p=perspective_p),
@@ -75,7 +75,8 @@ def train_transforms(
         ),
         A.Resize(
             height=height,
-            width=width
+            width=width,
+            always_apply=True
         ),
         A.Normalize(
             mean=mean,
@@ -90,7 +91,7 @@ def val_transform(
     input_size: Union[int, list, tuple],
     mean=[0.485, 0.456, 0.406],
     std=[0.229, 0.224, 0.225],
-    ) -> A.Compose:
+) -> A.Compose:
 
     if isinstance(input_size, tuple) or isinstance(input_size, list):
         height = input_size[0]
@@ -101,8 +102,10 @@ def val_transform(
     
     augs = [
         A.PadIfNeeded(
-            min_height=height, 
-            min_width=width
+            min_height=height,
+            min_width=width,
+            always_apply=True,
+            border_mode=0
         ),
         A.Resize(
             height=height,
@@ -123,7 +126,8 @@ def transform(
     scale_limit: float = .5,
     rotate_limit: float = 0,
     shift_limit: float = .1,
-    shif_scale_rotate_p: float = 1,
+    shift_scale_rotate_p: float = 1,
+    random_crop_p: float = .5,
     border_mode: float = 0,
     gauss_noise_p: float = .5,
     perspective_p: float = .5,
@@ -131,7 +135,7 @@ def transform(
     blur_limit: float = 3,
     mean=[0.485, 0.456, 0.406],
     std=[0.229, 0.224, 0.225]
-    ) -> A.Compose:
+) -> A.Compose:
     """returns set of data transformations with Albumentation
 
     Args:
@@ -148,7 +152,8 @@ def transform(
             scale_limit=scale_limit,
             rotate_limit=rotate_limit,
             shift_limit=shift_limit,
-            shif_scale_rotate_p=shif_scale_rotate_p,
+            random_crop_p=random_crop_p,
+            shift_scale_rotate_p=shift_scale_rotate_p,
             border_mode=border_mode,
             gauss_noise_p=gauss_noise_p,
             perspective_p=perspective_p,

@@ -1,28 +1,22 @@
 # **smart-arrotino**
-Smart Arrotino: identifying cracks and potholes from road images.
+Smart Arrotino: identifying anomalies from road images.
 
-## **Dataset**
-Smart Arrotino is trained on [Cracks and Potholes in Road Images Dataset](https://github.com/biankatpas/Cracks-and-Potholes-in-Road-Images-Dataset).
+<!-- ## **Dataset**
+Smart Arrotino is trained on:
+* Pothole (Segmentation):  [Cracks and Potholes in Road Images Dataset](https://github.com/biankatpas/Cracks-and-Potholes-in-Road-Images-Dataset) + [Kaggle Pothole](https://www.kaggle.com/datasets/sachinpatel21/pothole-image-dataset) (custom annotated) + photos taken around Italy
+* Cracks (Segmentation): [Cracks and Potholes in Road Images Dataset](https://github.com/biankatpas/Cracks-and-Potholes-in-Road-Images-Dataset) -->
 
 
-Input Image                |  Crack-Pothole Prediction
+Input Image                |  Pothole Prediction
 :-------------------------:|:-------------------------:
 ![](static/image.jpg)  |  ![](static/crack_prediction.jpg)
 
-### **Dataset Preparation**
-In the *notebooks* folder, open the *prepare_road_dataset.ipynb* and specify where the dataset is saved in:
-```
-dataset_dir = "PATH/TO/YOUR/DATASET"
-```
-Run all the cells to split the dataset into train e validation.
+
+<!-- ## **Important Information**
+Currently only pothole segmentation is supported. You can download the dataset from [here](null).
 
 ## **Train**
 Provide training configurations in the *config* folder with the yml file.
-
-Define the class you want to predict in the *classes* list, choose one of:
-* lane
-* crack
-* pothole
 
 **[!!] Currently only single class prediction is implemented.**
 
@@ -51,10 +45,11 @@ Use the *notebooks/inference.ipynb* notebook:
         train=False,
         transform=transform(train=False, input_size=input_size)
     )
-    ```
+    ``` -->
 
 ## **To-Do**
-[ ] multi-label segmentation
+[ ] dataset improvement
 
-[ ] extended dataset from different sources 
+[ ] better readme
+
 

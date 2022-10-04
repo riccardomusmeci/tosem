@@ -1,80 +1,64 @@
 import os
-import torch
 import argparse
 from shutil import copy
+from src.utils import now
+from src.io import load_config
 import pytorch_lightning as pl
-from src.utils.time import now
-from src.loss.loss import loss_fn
-from src.io.io import load_config
-from src.utils.logger import get_logger
-from src.transform.transform import transform
-from src.utils.callbacks import get_callbacks
-from src.model.utils import segmentation_model
-from src.optimizer.optimizer import get_optimizer
-from src.scheduler.scheduler import get_scheduler
-
-from src.dataset.road_data_module import RoadDataModule
-from src.model.segmentation_module import RoadSegmentationModule
+from src.loss import Criterion
+from src.trainer import Callbacks
+from src.optimizer import Optimizer
+from src.transform import Transform
+from src.scheduler import LRScheduler
+from src.datamodule import RoadDataModule
+from src.model import create_model, SegmentationModule
 
 def train(args: argparse.Namespace):
-    
-    ### Setting reproducibility seed
-    pl.seed_everything(seed=args.seed, workers=True)
-    
-    ### Loading configs
-    config = load_config(args.config)
-        
-    ### Detting output dir
-    output_dir = os.path.join(args.output_dir, config['project_name'], now())
-    print(f"> Output from training will be saved at {output_dir}")
-    os.makedirs(output_dir)
 
+    pl.seed_everything(seed=args.seed, workers=True)
+    config = load_config(path=args.config)
+    output_dir = os.path.join(args.output_dir, now())
     
-    copy(args.config, output_dir)
-    # copytree(args.config, os.path.join(output_dir, "config"))
-    
-    ### Creating data_module
-    data_module = RoadDataModule(
+    # Copying config
+    os.makedirs(output_dir)
+    copy(args.config, os.path.join(output_dir, "config.yml"))
+        
+    # data module
+    datamodule = RoadDataModule(
         data_dir=args.data_dir,
-        train_transform=transform(train=True, **config["transform"]),
-        val_transform=transform(train=False,  **config["transform"]),
-        **config["dataset"]
+        train_transform=Transform(train=True, **config["transform"]),
+        val_transform=Transform(train=False, **config["transform"]),
+        **config["datamodule"],
     )
     
-    ### Creating model
-    model = segmentation_model(
-        num_classes=len(config["dataset"]["classes"]),
-        **config["model"]
-    )
+    # creating segmentation model + loss + optimizer + lr_scheduler
+    seg_model = create_model(**config["model"])
+    loss = Criterion(**config["loss"])
+    optimizer = Optimizer(params=seg_model.parameters(), **config["optimizer"])
+    lr_scheduler = LRScheduler(optimizer=optimizer, **config["scheduler"])
     
-    ### Creating loss, optimizer and scheduler ###
-    loss = loss_fn(**config["loss"])
-    optimizer = get_optimizer(params=model.parameters(), **config["optimizer"])
-    scheduler = get_scheduler(optimizer=optimizer, **config["scheduler"])
-    
-    
-    ### pl Module ###
-    seg_module = RoadSegmentationModule(
-        model=model,
-        num_classes=len(data_module.classes),
+    # segmentation pl.LightningModule
+    # TODO: verifica la dimensione della maschera
+    model = SegmentationModule(
+        model=seg_model,
+        num_classes=config["model"]["num_classes"], 
         loss=loss,
         optimizer=optimizer,
-        lr_scheduler=scheduler
+        lr_scheduler=lr_scheduler       
     )
     
-    ### Callbacks and Logger for Trainer ###
-    callbacks = get_callbacks(output_dir=output_dir)
-    logger = get_logger(output_dir=output_dir)
-    
-    ### Trainer
+    # lightning callbacks
+    callbacks = Callbacks(
+        output_dir=output_dir,
+        **config["callbacks"]
+    )
+     
+    # trainer
     trainer = pl.Trainer(
-        logger=logger,
+        logger=False,
         callbacks=callbacks,
-        default_root_dir=output_dir,
         **config["trainer"]
     )
     
-    print(f"\n**** Starting Training for classes: {data_module.classes} ****\n")
-    trainer.fit(seg_module, datamodule=data_module)
-    
-    
+    # fit
+    print(f"Launching training..")
+    trainer.fit(model=model, datamodule=datamodule)

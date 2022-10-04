@@ -127,3 +127,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+max_size.py
+train.sh
+*.DS_Store
+
+lightning_logs/*
+notebooks/data-preparation.ipynb
