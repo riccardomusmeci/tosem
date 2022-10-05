@@ -26,7 +26,12 @@ import matplotlib.pyplot as plt
 #     plt.imshow(image)
 #     plt.show()
     
-def visualize(image: np.array, gt_mask: np.array, mask: np.array, category: list, ):
+def visualize(
+    image: np.array, 
+    gt_mask: np.array, 
+    mask: np.array, 
+    category: list, 
+):
     """plots images in one row
     """
     

@@ -69,7 +69,6 @@ class RoadInferenceDataset(Dataset):
                 print(f"Transform on image {image_path} failed. Reason: {e}")
                 quit()
 
-        #print(image.shape, mask.shape)
         image = torch.from_numpy(image.transpose(2, 0, 1))
         
         return image

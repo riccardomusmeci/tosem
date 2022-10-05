@@ -7,7 +7,7 @@ from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor, Ea
 
 def callbacks(
     output_dir: str,
-    filename: str = "epoch={epoch}-step={step}-val_loss={loss/val:.3f}-val_iou={IoU/all/val:.3f}",
+    filename: str = "epoch={epoch}-step={step}-val_loss={loss/val:.3f}",
     monitor: str = "loss/val",
     mode: str = "min",
     save_top_k: int = 5,
@@ -29,7 +29,7 @@ def callbacks(
     callbacks = []
     callbacks.append(
         ModelCheckpoint(
-            dirpath=os.path.join(output_dir, "checkpoint"),
+            dirpath=os.path.join(output_dir, "checkpoints"),
             filename=filename,
             monitor=monitor,
             verbose=True,
