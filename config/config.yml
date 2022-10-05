@@ -18,7 +18,7 @@ datamodule:
 # =========================== Segmentation Model ==========================
 model:
   model_name: unet                                        # segmentation model name (e.g. unet)
-  backbone: resnet18                                      # backbone for segmentation model (e.g. resnet18)
+  backbone: resnet34                                      # backbone for segmentation model (e.g. resnet18)
   num_classes: 1                                          # number of segmentation classes (LEAVE 1)
   in_channels: 3                                          # number of input image channles
   weights: imagenet                                       # pretrained weight
@@ -30,7 +30,7 @@ loss:
 
 optimizer:
   algorithm: sgd                                          # which optimizer to use
-  lr: 0.001                                               # learning rate
+  lr: 0.01                                               # learning rate
   momentum: 0                                             # momentum
   weight_decay: 0                                         # weight decay
 
@@ -60,7 +60,7 @@ transform:
 # =========================== Callbacks ==========================
 callbacks:
   # filename: "epoch={epoch}-step={step}-val_loss={loss/val:.3f}-val_iou={IoU/all/val:.3f}"   # for cuda
-  filename: "epoch={epoch}-step={step}-val_loss={loss/val:.3f}"    # for MPS
+  filename: epoch={epoch}-step={step}-val_loss={loss/val:.5f}
   monitor: loss/val                                       # metric to monitor
   mode: min                                               # mode to monitor metric
   save_top_k: 5                                           # number of best ckpt to save
