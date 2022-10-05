@@ -63,29 +63,8 @@ python train.py --config config/YOUR_CONFIG.yml --output-dir PATH/TO/OUTPUT/DIR 
 :warning:
 Currently only num_classes=2 is supported.
 
-
-
-Use the *notebooks/inference.ipynb* notebook:
-* load the best trained model (ckpt file)
-    ```
-    model = RoadSegmentationModule.load_from_checkpoint(
-        checkpoint_path="PATH/TO/BEST/CKPT"
-    )
-    ```
-* set the input_size, the path to the split dataset, and the class your model predicts
-    ```
-    input_size = (512, 512)
-    dataset = RoadDataset(
-        data_dir="PATH/TO/SPLIT/DATASET",
-        classes=["CLASS"],
-        train=False,
-        transform=transform(train=False, input_size=input_size)
-    )
-    ``` -->
-
 ## **To-Do**
 [ ] dataset improvement
 
-[ ] better readme
 
 
