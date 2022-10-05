@@ -1,5 +1,7 @@
 import os
 import argparse
+
+from numpy import require
 from src.core import train
 
 import warnings
@@ -22,15 +24,15 @@ def parse_args() -> argparse.Namespace:
     
     parser.add_argument(
         "--output-dir",
-        default="/Users/riccardomusmeci/Developer/experiments/github/smart-arrotino/pothole",
         type=str,
+        required=True,
         help="local directory where the best model checkpoint is saved at the end of training."
     )
     
     parser.add_argument(
         "--data-dir",
-        metavar="N",
-        default="/Users/riccardomusmeci/Developer/data/github/smart-arrotino/pothole/dataset/split",
+        type=str,
+        required=True,
         help="Input data dir path."
     )
     
