@@ -2,11 +2,12 @@ tqdm
 exif
 glob2==0.7
 scikit-learn
-torch
+torch==1.12.1
 matplotlib>=2.2
-torchmetrics
+torchmetrics==0.9.3
 torchvision==0.13.0
 albumentations==1.0.0
 pytorch_toolbelt
-pytorch-lightning
+pytorch-lightning==1.7.5
 segmentation-models-pytorch==0.2.1
+pycocotools
