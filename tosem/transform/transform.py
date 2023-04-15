@@ -26,18 +26,6 @@ class Transform:
         one_of_p: float = 0.9,
         blur_limit: float = 3,
     ) -> None:
-        """Saliency based transformation
-
-        Args:
-            train (bool): train/val mode.
-            input_size (Union[int, list, tuple]): image input size.
-            interpolation (int, optional): resize interpolation. Defaults to 3.
-            mean (list, optional): normalization mean. Defaults to [0.485, 0.456, 0.406].
-            std (list, optional): normalization std. Defaults to [0.229, 0.224, 0.225].
-            random_crop_p (float, optional): random crop probability. Defaults to 0.1.
-            h_flip_p (float, optional): horizontal flip probability. Defaults to 0.1.
-            v_flip_p (float, optional): vertical flip probability. Defaults to 0.1.
-        """
 
         if isinstance(input_size, tuple) or isinstance(input_size, list):
             height = input_size[0]
@@ -78,7 +66,7 @@ class Transform:
                         ],
                         p=one_of_p,
                     ),
-                    A.Resize(height=height, width=width, always_apply=True),
+                    A.Resize(height=height, width=width, interpolation=interpolation, always_apply=True),
                     A.Normalize(mean=mean, std=std, always_apply=True),
                 ]
             )
@@ -86,7 +74,7 @@ class Transform:
             self.transform = A.Compose(
                 [
                     A.PadIfNeeded(min_height=height, min_width=width, always_apply=True, border_mode=0),
-                    A.Resize(height=height, width=width),
+                    A.Resize(height=height, width=width, interpolation=interpolation, always_apply=True),
                     A.Normalize(mean=mean, std=std, always_apply=True),
                 ]
             )

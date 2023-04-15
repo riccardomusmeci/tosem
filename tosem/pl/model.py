@@ -10,6 +10,17 @@ from torchmetrics import JaccardIndex as IoU
 
 
 class SegmentationModelModule(pl.LightningModule):
+    """Segmentation Model Lightning Module
+
+    Args:
+        model (str): segmentation model name
+        num_classes (int): num classes to predict
+        loss (_Loss): loss
+        optimizer (Optimizer): optimizer
+        lr_scheduler (_LRScheduler, optional): Optional; Lesarning rate scheduler. Defaults to None.
+        IoU_task (str): either binary, multiclass, or multilabel
+    """
+
     def __init__(
         self,
         model: nn.Module,
@@ -19,16 +30,6 @@ class SegmentationModelModule(pl.LightningModule):
         lr_scheduler: _LRScheduler,
         IoU_task: str,
     ) -> None:
-        """Road Segmentation Lightning Module
-
-        Args:
-            model (str): segmentation model name
-            num_classes (int): num classes to predict
-            loss (_Loss): loss
-            optimizer (Optimizer): optimizer
-            lr_scheduler (_LRScheduler, optional): Optional; Lesarning rate scheduler. Defaults to None.
-            IoU_task (str): either binary, multiclass, or multilabel
-        """
 
         assert IoU_task in [
             "binary",

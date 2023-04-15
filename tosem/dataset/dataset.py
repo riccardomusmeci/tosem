@@ -1,5 +1,4 @@
 import os
-from pathlib import Path
 from typing import Callable, Tuple
 
 import torch
@@ -12,10 +11,10 @@ class SegmentationDataset(Dataset):
     """Segmentation Dataset class to train a model
 
     Args:
-            data_dir (str): data dir
-            train (bool): if True it looks for "train" folder, else for "val" folder.
-            transform (Callable, optional): augmentation function. Defaults to None.
-            verbose (bool, optional): verbose mode. Defaults to True.
+        data_dir (str): data dir
+        train (bool): if True it looks for "train" folder, else for "val" folder.
+        transform (Callable, optional): augmentation function. Defaults to None.
+        verbose (bool, optional): verbose mode. Defaults to True.
     """
 
     EXTENSIONS = (

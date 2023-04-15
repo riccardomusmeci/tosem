@@ -7,6 +7,19 @@ from tosem.dataset import SegmentationDataset
 
 
 class SegmentationDataModule(pl.LightningDataModule):
+    """Segmentation Lightning DataModule
+
+    Args:
+        data_dir (str): data dir
+        batch_size (int): batch size
+        train_transform (Callable): train augmentations
+        val_transform (Callable): val augmentations
+        shuffle (bool, optional): if True, shuffles dataset. Defaults to True.
+        num_workers (int, optional): data loader num workers. Defaults to 1.
+        pin_memory (bool, optional): data loader pin memory. Defaults to False.
+        drop_last (bool, optional): data loader drop last. Defaults to False.
+    """
+
     def __init__(
         self,
         data_dir: str,
