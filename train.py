@@ -1,57 +1,93 @@
-import os
 import argparse
-
-from numpy import require
-from src.core import train
-
+import os
 import warnings
-warnings.filterwarnings("ignore", category=UserWarning) 
-from pytorch_lightning.utilities.warnings import LightningDeprecationWarning
-warnings.filterwarnings("ignore", category=LightningDeprecationWarning) 
+from shutil import copy
+
+import pytorch_lightning as pl
+
+from tosem import create_model
+from tosem.io import load_config
+from tosem.pl import Callbacks, SegmentationDataModule, SegmentationModelModule
+from tosem.transform import Transform
+from tosem.utils import now
+
+warnings.filterwarnings("ignore", category=UserWarning)
+from pytorch_toolbelt.losses import JaccardLoss
+from torch.optim import SGD
+from torch.optim.lr_scheduler import CosineAnnealingWarmRestarts
 
 
 def parse_args() -> argparse.Namespace:
-    
+
     parser = argparse.ArgumentParser("Training config")
-    
+
     parser.add_argument(
-        "--config",
-        default="config/config.yml",
-        type=str,
-        required=False,
-        help="path to the YAML configuration file"
+        "--config", default="config/config.yaml", type=str, required=False, help="path to the YAML configuration file"
     )
-    
+
     parser.add_argument(
         "--output-dir",
+        default="/Users/riccardomusmeci/Developer/experiments/github/smart-arrotino/test-package/",
         type=str,
-        required=True,
-        help="local directory where the best model checkpoint is saved at the end of training."
+        help="local directory where the best model checkpoint is saved at the end of training.",
     )
-    
+
     parser.add_argument(
         "--data-dir",
-        type=str,
-        required=True,
-        help="Input data dir path."
+        metavar="N",
+        default="/Users/riccardomusmeci/Developer/data/github/smart-arrotino/pothole/dataset/split",
+        help="Input data dir path.",
     )
-    
-    parser.add_argument(
-        "--seed",
-        type=int,
-        default=42,
-        help="random seed for reproducibility"
-    )
-    
+
+    parser.add_argument("--seed", type=int, default=42, help="random seed for reproducibility")
+
     args = parser.parse_args()
-    
+
     return args
 
+
 if __name__ == "__main__":
+
     args = parse_args()
-    train(args=args)
-    
-    
-    
-    
-    
+
+    pl.seed_everything(seed=args.seed, workers=True)
+    config = load_config(config_path=args.config)
+    output_dir = os.path.join(args.output_dir, now())
+
+    # Copying config
+    os.makedirs(output_dir)
+    copy(args.config, os.path.join(output_dir, "config.yml"))
+
+    # data module
+    pl_datamodule = SegmentationDataModule(
+        data_dir=args.data_dir,
+        train_transform=Transform(train=True, **config["transform"]),
+        val_transform=Transform(train=False, **config["transform"]),
+        **config["datamodule"],
+    )
+
+    # creating segmentation model + loss + optimizer + lr_scheduler
+    model = create_model(**config["model"])
+    loss = JaccardLoss(**config["loss"])
+    optimizer = SGD(model.parameters(), **config["optimizer"])
+    lr_scheduler = CosineAnnealingWarmRestarts(optimizer=optimizer, **config["lr_scheduler"])
+
+    # segmentation pl.LightningModule
+    pl_model = SegmentationModelModule(
+        model=model,
+        num_classes=config["model"]["num_classes"],
+        loss=loss,
+        optimizer=optimizer,
+        lr_scheduler=lr_scheduler,
+        IoU_task="binary",
+    )
+
+    # lightning callbacks
+    callbacks = Callbacks(output_dir=output_dir, **config["callbacks"])
+
+    # trainer
+    trainer = pl.Trainer(logger=False, callbacks=callbacks, **config["trainer"])
+
+    # fit
+    print("Launching training..")
+    trainer.fit(model=pl_model, datamodule=pl_datamodule)
