@@ -5,7 +5,21 @@ import segmentation_models_pytorch as smp
 import torch
 import torch.nn as nn
 
-_FACTORY = {"unet": smp.Unet, "deeplabv3": smp.DeepLabV3, "deeplabv3+": smp.DeepLabV3Plus}
+from tosem.utils import get_device
+
+__all__ = ["create_model", "list_models"]
+
+_FACTORY = {
+    "unet": smp.Unet,
+    "deeplabv3": smp.DeepLabV3,
+    "deeplabv3+": smp.DeepLabV3Plus,
+    "unet++": smp.UnetPlusPlus,
+    "manet": smp.MAnet,
+    "linknet": smp.Linknet,
+    "fpn": smp.FPN,
+    "pspnet": smp.PSPNet,
+    "pan": smp.PAN,
+}
 
 
 def create_model(
@@ -45,31 +59,39 @@ def create_model(
         model.load_state_dict(state_dict)
 
     if verbose:
-        print("##### Segmentation Model #####")
-        print(f"> Architecture: {model_name.upper()}")
-        print(f"> Backbone: {encoder_name}")
-        print(f"> Weights from: {weights}")
-        print(f"> Num classes: {num_classes}")
-        print(f"> State Dict from: {ckpt_path}")
-        print("###############################")
+        print("> Model recap:")
+        print(f"\t- Architecture: {model_name.upper()}")
+        print(f"\t- Backbone: {encoder_name}")
+        print(f"\t- Weights from: {weights}")
+        print(f"\t- Num classes: {num_classes}")
+        print(f"\t- State Dict from: {ckpt_path}")
 
     return model
+
+
+def list_models():
+    print("Available Models:")
+    for k, v in _FACTORY.items():
+        print(f"> {k} - {v}")
 
 
 def load_state_dict(ckpt_path: Path, verbose: bool = True) -> Dict:
     """Load a state dict from ckpt file
 
     Args:
-        ckpt_path (str): ckpt path
+        ckpt_path (str): checkpoint path
+        verbose (bool, optional): verbose mode. Defaults to True.
 
     Returns:
-        Dict: model state dict (weights)
+        Dict: model state dict (layer-weights)
     """
-    pass
-    # device = torch.device("gpu") if torch.cuda.is_available() else torch.device("cpu")
-    # ckpt_state_dict = torch.load(ckpt_path, map_location=device)["state_dict"]
-    # state_dict = {}
-    # for key, weights in ckpt_state_dict.items():
-    #     l = key.replace("model.", "")
-    #     state_dict[l] = weights
-    # return state_dict
+    ckpt_state_dict = torch.load(ckpt_path, map_location=get_device())["state_dict"]
+    state_dict = {}
+    for key, weights in ckpt_state_dict.items():
+        model_key = key.replace("model.", "")
+        try:
+            state_dict[model_key] = weights
+        except Exception as e:
+            print(f"Error while copying weights from layer {model_key}. Error: {e}")
+            quit()
+    return state_dict
