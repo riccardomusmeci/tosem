@@ -1,8 +1,8 @@
 import os
 from pathlib import Path
 
+import cv2
 import numpy as np
-from PIL import Image
 
 
 def read_rgb(file_path: Path) -> np.array:
@@ -19,13 +19,15 @@ def read_rgb(file_path: Path) -> np.array:
     """
     if not os.path.exists(file_path):
         raise FileNotFoundError(f"The path {file_path} does not exist")
-    image = Image.open(file_path).convert("RGB")
-    image = np.array(image)
+    image = cv2.imread(file_path)
+    if image is None:
+        raise ValueError(f"Unable to read {file_path}.")
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     return image
 
 
-def read_binary(file_path: Path) -> np.array:
-    """Load a binary mask from file_path as a numpy array
+def read_mask(file_path: Path) -> np.array:
+    """Load a segmentation mask from file_path as a numpy array
 
     Args:
         file_path (Path): path to image
@@ -38,6 +40,8 @@ def read_binary(file_path: Path) -> np.array:
     """
     if not os.path.exists(file_path):
         raise FileNotFoundError(f"The path {file_path} does not exist")
-    image = Image.open(file_path).convert("L")
-    image = np.array(image, dtype=np.float32) / 255
-    return image
+    img = cv2.imread(str(file_path), cv2.IMREAD_GRAYSCALE)
+    if img is None:
+        raise ValueError(f"Unable to read {file_path}.")
+
+    return img

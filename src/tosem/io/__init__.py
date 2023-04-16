@@ -1,2 +1,2 @@
 from .config import load_config
-from .image import read_binary, read_rgb
+from .image import read_mask, read_rgb
