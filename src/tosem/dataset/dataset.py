@@ -4,7 +4,7 @@ from typing import Callable, Tuple
 import torch
 from torch.utils.data import Dataset
 
-from ..io.image import read_binary, read_rgb
+from ..io.image import read_mask, read_rgb
 
 
 class SegmentationDataset(Dataset):
@@ -29,11 +29,14 @@ class SegmentationDataset(Dataset):
         ".webp",
     )
 
-    def __init__(self, data_dir: str, train: bool, transform: Callable = None, verbose: bool = True) -> None:
+    def __init__(
+        self, data_dir: str, train: bool, transform: Callable = None, class_channel: int = None, verbose: bool = True
+    ) -> None:
 
         self.train = train
         self.data_dir = data_dir
         self.verbose = verbose
+        self.class_channel = class_channel
 
         # checking sanity of data_dir
         try:
@@ -118,7 +121,11 @@ class SegmentationDataset(Dataset):
         mask_path = self.masks[index]
 
         image = read_rgb(file_path=image_path)
-        mask = read_binary(file_path=mask_path)
+        if self.class_channel is not None:
+            mask = read_rgb(file_path=mask_path)
+            mask = mask[:, :, self.class_channel]
+        else:
+            mask = read_mask(file_path=mask_path)
 
         if self.transform:
             try:
@@ -139,4 +146,56 @@ class SegmentationDataset(Dataset):
         Returns:
             int: number of images in the dataset
         """
+        return len(self.images)
+
+
+class InferenceDataset(Dataset):
+
+    EXTENSIONS = (
+        "jpg",
+        "jpeg",
+        "png",
+        "ppm",
+        "bmp",
+        "pgm",
+        "tif",
+        "tiff",
+        "webp",
+    )
+
+    def __init__(
+        self,
+        data_dir: str,
+        transform: Callable = None,
+    ) -> None:
+        """Inference Dataset (a folder with images)
+
+        Args:
+            root_dir (str): root data dir (must be with train and val folders)
+            transform (Callable, optional): set of data transformations. Defaults to None.
+
+        Raises:
+            FileNotFoundError: if something is found erroneous in the dataset
+        """
+
+        super().__init__()
+        self.data_dir = data_dir
+        self.images = [
+            os.path.join(self.data_dir, f)
+            for f in os.listdir(self.data_dir)
+            if os.path.splitext(f)[-1] in self.EXTENSIONS
+        ]
+        self.transform = transform
+
+    def __getitem__(self, index):
+
+        img_path = self.images[index]
+        img = read_rgb(img_path)
+
+        if self.transform is not None:
+            img = self.transform(img)["image"]
+
+        return img
+
+    def __len__(self):
         return len(self.images)
