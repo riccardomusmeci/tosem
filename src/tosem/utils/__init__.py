@@ -1,5 +1,5 @@
 from .device import get_device
-from .plot import compare_gt_pred
+from .plot import apply_mask, plot_predictions
 from .time import now
 
-__all__ = ["get_device", "now", "compare_gt_pred"]
+__all__ = ["get_device", "now", "plot_predictions"]
