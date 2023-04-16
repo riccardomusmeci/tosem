@@ -5,7 +5,7 @@ from setuptools import find_packages, setup
 
 # get version string from module
 with open(
-    os.path.join(os.path.dirname(__file__), "tosem", "__init__.py"),
+    os.path.join(os.path.dirname(__file__), "src", "__init__.py"),
     "r",
 ) as f:
     pattern = r"__version__ = ['\"]([^'\"]*)['\"]"
@@ -30,8 +30,8 @@ setup(
     long_description_content_type="text/markdown",
     include_package_data=True,
     packages=find_packages("tosem"),
-    package_dir={"": "tosem"},
-    package_data={"tosem": ["py.typed"]},
+    package_dir={"": "src"},
+    package_data={"src": ["py.typed"]},
     install_requires=reqs,
     extras_require={
         "dev": dev_reqs + test_reqs + doc_reqs + reqs,
