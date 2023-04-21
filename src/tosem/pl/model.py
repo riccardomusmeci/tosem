@@ -44,7 +44,7 @@ class SegmentationModelModule(pl.LightningModule):
         self.model = model
         if num_classes == 1:
             print("[WARNING] num_classes set to 1, but must inlcude also background. Forcing to 2.")
-            self.num_classes += 1
+            self.num_classes = 2
         else:
             self.num_classes = num_classes
         self.loss = loss
