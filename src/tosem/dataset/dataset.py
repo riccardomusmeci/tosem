@@ -125,7 +125,7 @@ class SegmentationDataset(Dataset):
             mask = read_rgb(file_path=mask_path)
             mask = mask[:, :, self.class_channel]
         else:
-            mask = read_mask(file_path=mask_path)
+            mask = read_mask(file_path=mask_path) / 255
 
         if self.transform:
             try:

@@ -26,6 +26,7 @@ class SegmentationDataModule(pl.LightningDataModule):
         batch_size: int,
         train_transform: Callable,
         val_transform: Callable,
+        class_channel: int = 0,
         shuffle: bool = True,
         num_workers: int = 1,
         pin_memory: bool = False,
@@ -36,6 +37,7 @@ class SegmentationDataModule(pl.LightningDataModule):
         self.batch_size = batch_size
         self.train_transform = train_transform
         self.val_transform = val_transform
+        self.class_channel = class_channel
         self.shuffle = shuffle
         self.num_workers = num_workers
         self.pin_memory = pin_memory
@@ -52,19 +54,17 @@ class SegmentationDataModule(pl.LightningDataModule):
         """
         if stage == "fit" or stage is None:
             self.train_dataset = SegmentationDataset(
-                data_dir=self.data_dir,
-                train=True,
-                transform=self.train_transform,
+                data_dir=self.data_dir, train=True, transform=self.train_transform, class_channel=self.class_channel
             )
 
             self.val_dataset = SegmentationDataset(
-                data_dir=self.data_dir,
-                train=False,
-                transform=self.val_transform,
+                data_dir=self.data_dir, train=False, transform=self.val_transform, class_channel=self.class_channel
             )
 
         if stage == "test" or stage is None:
-            self.test_dataset = SegmentationDataset(data_dir=self.data_dir, train=False, transform=self.val_transform)
+            self.test_dataset = SegmentationDataset(
+                data_dir=self.data_dir, train=False, transform=self.val_transform, class_channel=self.class_channel
+            )
 
     def train_dataloader(self) -> Union[DataLoader, List[DataLoader], Dict[str, DataLoader]]:
         return DataLoader(

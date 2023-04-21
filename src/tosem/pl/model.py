@@ -19,6 +19,7 @@ class SegmentationModelModule(pl.LightningModule):
         optimizer (Optimizer): optimizer
         lr_scheduler (_LRScheduler, optional): Optional; Lesarning rate scheduler. Defaults to None.
         IoU_task (str): either binary, multiclass, or multilabel
+        IoU_ignore_index (int): class index to ignore to compute IoU. Defaults to 0.
     """
 
     def __init__(
@@ -29,6 +30,7 @@ class SegmentationModelModule(pl.LightningModule):
         optimizer: Optimizer,
         lr_scheduler: _LRScheduler,
         IoU_task: str,
+        IoU_ignore_index: int = 0,
     ) -> None:
 
         assert IoU_task in [
@@ -40,13 +42,17 @@ class SegmentationModelModule(pl.LightningModule):
         super().__init__()
         self.save_hyperparameters(ignore=["model"])
         self.model = model
-        self.num_classes = num_classes + 1  # for the background
+        if num_classes == 1:
+            print("[WARNING] num_classes set to 1, but must inlcude also background. Forcing to 2.")
+            self.num_classes += 1
+        else:
+            self.num_classes = num_classes
         self.loss = loss
         self.optimizer = optimizer
         self.lr_scheduler = lr_scheduler
 
         # 0 is background
-        self.IoU = IoU(task=IoU_task, num_classes=self.num_classes, gnore_index=0)
+        self.IoU = IoU(task=IoU_task, num_classes=self.num_classes, ignore_index=IoU_ignore_index)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # Output a tensor of shape (batch size, num classes, height, width)
@@ -80,7 +86,6 @@ class SegmentationModelModule(pl.LightningModule):
 
         """
         x, mask = batch
-
         logits = self(x)
         preds = self.preds_from_logits(logits)
 
@@ -88,15 +93,20 @@ class SegmentationModelModule(pl.LightningModule):
         loss = self.loss(logits, mask)
 
         self.log("loss_val", loss, sync_dist=True)
-        iou = self.IoU(preds, mask)
-        self.log("IoU_val", iou, prog_bar=True)
+        self.IoU.update(preds, mask)
 
     def preds_from_logits(self, logits: torch.Tensor) -> torch.Tensor:
         if self.num_classes == 2:
             preds = torch.sigmoid(logits)
         else:
             preds = torch.softmax(logits, dim=1)
+        preds = torch.argmax(preds, dim=1, keepdim=True)
         return preds
+
+    def on_validation_epoch_end(self) -> None:
+        iou = self.IoU.compute()
+        self.IoU.reset()
+        self.log("IoU_val", iou, prog_bar=True)
 
     def configure_optimizers(
         self,
