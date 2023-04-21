@@ -133,11 +133,6 @@ class SegmentationDataset(Dataset):
             except Exception as e:
                 print(f"Transform on image {image_path} not working. Reason: {e}")
                 quit()
-
-        image = torch.from_numpy(image.transpose(2, 0, 1))
-        mask = torch.from_numpy(mask).long()
-        mask = mask.unsqueeze(dim=0)
-
         return image, mask
 
     def __len__(self) -> int:
@@ -152,15 +147,15 @@ class SegmentationDataset(Dataset):
 class InferenceDataset(Dataset):
 
     EXTENSIONS = (
-        "jpg",
-        "jpeg",
-        "png",
-        "ppm",
-        "bmp",
-        "pgm",
-        "tif",
-        "tiff",
-        "webp",
+        ".jpg",
+        ".jpeg",
+        ".png",
+        ".ppm",
+        ".bmp",
+        ".pgm",
+        ".tif",
+        ".tiff",
+        ".webp",
     )
 
     def __init__(
@@ -193,7 +188,7 @@ class InferenceDataset(Dataset):
         img = read_rgb(img_path)
 
         if self.transform is not None:
-            img = self.transform(img)["image"]
+            img, _ = self.transform(img)
 
         return img
 

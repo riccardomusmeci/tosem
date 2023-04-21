@@ -3,6 +3,7 @@ from typing import Tuple, Union
 import albumentations as A
 import numpy as np
 import PIL
+import torch
 from PIL import Image
 
 
@@ -80,12 +81,13 @@ class Transform:
             )
 
     def __call__(
-        self, image: Union[np.array, PIL.Image.Image], mask: Union[np.array, PIL.Image.Image]
+        self, image: Union[np.array, PIL.Image.Image], mask: Union[np.array, PIL.Image.Image] = None
     ) -> Tuple[np.array, np.array]:
         """Apply augmentations
 
         Args:
             img (Union[np.array, PIL.Image.Image]): input image
+            mask (Union[np.array, PIL.Image.Image], optional): input mask. Defaults to None.
 
         Returns:
             Tuple[np.array, np.array, np.array]: vanilla img (resize + normalize), view 1, view 2
@@ -103,5 +105,10 @@ class Transform:
         else:
             image = self.transform(image=image)["image"]
             mask = None
+
+        image = torch.from_numpy(image.transpose(2, 0, 1))
+        if mask is not None:
+            mask = torch.from_numpy(mask).long()
+            mask = mask.unsqueeze(dim=0)
 
         return image, mask
