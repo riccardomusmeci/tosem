@@ -109,9 +109,12 @@ class SegmentationDataset(Dataset):
             else:
                 not_found += 1
         if self.verbose:
-            print(f"> Found {len(images)} images with masks")
+            print(f"> {'Train' if self.train else 'Val'} Dataset Recap:")
+            print(f"\t- Found {len(images)} images with masks")
+            print(f"\t- Class Map: {self.class_map}")
+            print(f"\t- Class Channel: {self.class_channel}")
             if not_found > 0:
-                print(f"> Not found {not_found} images with masks")
+                print(f"\t- Not found {not_found} images with masks")
 
         if len(images) == 0:
             raise FileNotFoundError("No images and related masks found. Check your data.")
