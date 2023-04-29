@@ -6,6 +6,7 @@ from torch import nn
 from torch.nn.modules.loss import _Loss
 from torch.optim import Optimizer
 from torch.optim.lr_scheduler import _LRScheduler
+from torchmetrics import FBetaScore
 from torchmetrics import JaccardIndex as IoU
 
 
@@ -18,8 +19,7 @@ class SegmentationModelModule(pl.LightningModule):
         loss (_Loss): loss
         optimizer (Optimizer): optimizer
         lr_scheduler (_LRScheduler, optional): Optional; Lesarning rate scheduler. Defaults to None.
-        IoU_task (str): either binary, multiclass, or multilabel
-        IoU_ignore_index (int): class index to ignore to compute IoU. Defaults to 0.
+        ignore_index (int): class index to ignore to compute IoU. Defaults to 0.
     """
 
     def __init__(
@@ -29,15 +29,9 @@ class SegmentationModelModule(pl.LightningModule):
         loss: _Loss,
         optimizer: Optimizer,
         lr_scheduler: _LRScheduler,
-        IoU_task: str,
-        IoU_ignore_index: int = 0,
+        ignore_index: int = 0,
+        beta: float = 0.5,
     ) -> None:
-
-        assert IoU_task in [
-            "binary",
-            "multiclass",
-            "multilabel",
-        ], "IoU_task must be one of binary, multiclass, multilabel"
 
         super().__init__()
         self.save_hyperparameters(ignore=["model"])
@@ -50,9 +44,10 @@ class SegmentationModelModule(pl.LightningModule):
         self.loss = loss
         self.optimizer = optimizer
         self.lr_scheduler = lr_scheduler
-
+        task = "binary" if self.num_classes == 2 else "multiclass"
         # 0 is background
-        self.IoU = IoU(task=IoU_task, num_classes=self.num_classes, ignore_index=IoU_ignore_index)
+        self.IoU = IoU(task=task, num_classes=self.num_classes, ignore_index=ignore_index)
+        self.f_beta = FBetaScore(task=task, beta=beta, num_classes=self.num_classes, ignore_index=ignore_index)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # Output a tensor of shape (batch size, num classes, height, width)
@@ -94,6 +89,7 @@ class SegmentationModelModule(pl.LightningModule):
 
         self.log("loss_val", loss, sync_dist=True)
         self.IoU.update(preds, mask)
+        self.f_beta.update(preds, mask)
 
     def preds_from_logits(self, logits: torch.Tensor) -> torch.Tensor:
         if self.num_classes == 2:
@@ -105,8 +101,11 @@ class SegmentationModelModule(pl.LightningModule):
 
     def on_validation_epoch_end(self) -> None:
         iou = self.IoU.compute()
+        fbeta = self.f_beta.compute()
         self.IoU.reset()
+        self.f_beta.reset()
         self.log("IoU_val", iou, prog_bar=True)
+        self.log("fbeta_val", fbeta, prog_bar=True)
 
     def configure_optimizers(
         self,
