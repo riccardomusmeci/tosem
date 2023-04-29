@@ -32,6 +32,7 @@ def easy_train(args: argparse.Namespace):
         data_dir=args.data_dir,
         train_transform=Transform(train=True, **config["transform"]),
         val_transform=Transform(train=False, **config["transform"]),
+        **config["dataset"],
         **config["datamodule"],
     )
 
@@ -49,6 +50,7 @@ def easy_train(args: argparse.Namespace):
         optimizer=optimizer,
         lr_scheduler=lr_scheduler,
         ignore_index=0,
+        beta=0.5,
     )
 
     # lightning callbacks
