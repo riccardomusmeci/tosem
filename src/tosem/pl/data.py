@@ -14,6 +14,8 @@ class SegmentationDataModule(pl.LightningDataModule):
         batch_size (int): batch size
         train_transform (Callable): train augmentations
         val_transform (Callable): val augmentations
+        class_map (Dict, optional): map to change some mask pixel value (e.g. from 3 to background, so 0). Defaults to None
+        class_channel (int, optional): which channel the pixel masks are saved (0 -> R, 1 -> G, 2 -> B). Defaults to 0.
         shuffle (bool, optional): if True, shuffles dataset. Defaults to True.
         num_workers (int, optional): data loader num workers. Defaults to 1.
         pin_memory (bool, optional): data loader pin memory. Defaults to False.
@@ -26,6 +28,7 @@ class SegmentationDataModule(pl.LightningDataModule):
         batch_size: int,
         train_transform: Callable,
         val_transform: Callable,
+        class_map: Dict = None,
         class_channel: int = 0,
         shuffle: bool = True,
         num_workers: int = 1,
@@ -37,6 +40,7 @@ class SegmentationDataModule(pl.LightningDataModule):
         self.batch_size = batch_size
         self.train_transform = train_transform
         self.val_transform = val_transform
+        self.class_map = class_map
         self.class_channel = class_channel
         self.shuffle = shuffle
         self.num_workers = num_workers
@@ -54,16 +58,28 @@ class SegmentationDataModule(pl.LightningDataModule):
         """
         if stage == "fit" or stage is None:
             self.train_dataset = SegmentationDataset(
-                data_dir=self.data_dir, train=True, transform=self.train_transform, class_channel=self.class_channel
+                data_dir=self.data_dir,
+                train=True,
+                transform=self.train_transform,
+                class_map=self.class_map,
+                class_channel=self.class_channel,
             )
 
             self.val_dataset = SegmentationDataset(
-                data_dir=self.data_dir, train=False, transform=self.val_transform, class_channel=self.class_channel
+                data_dir=self.data_dir,
+                train=False,
+                transform=self.val_transform,
+                class_map=self.class_map,
+                class_channel=self.class_channel,
             )
 
         if stage == "test" or stage is None:
             self.test_dataset = SegmentationDataset(
-                data_dir=self.data_dir, train=False, transform=self.val_transform, class_channel=self.class_channel
+                data_dir=self.data_dir,
+                train=False,
+                transform=self.val_transform,
+                class_map=self.class_map,
+                class_channel=self.class_channel,
             )
 
     def train_dataloader(self) -> Union[DataLoader, List[DataLoader], Dict[str, DataLoader]]:
