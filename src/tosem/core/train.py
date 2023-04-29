@@ -48,8 +48,7 @@ def easy_train(args: argparse.Namespace):
         loss=loss,
         optimizer=optimizer,
         lr_scheduler=lr_scheduler,
-        IoU_task="multiclass" if config["model"]["num_classes"] > 2 else "binary",
-        IoU_ignore_index=0,
+        ignore_index=0,
     )
 
     # lightning callbacks
