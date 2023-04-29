@@ -70,8 +70,8 @@ pl_model = SegmentationModelModule(
     loss=loss,
     optimizer=optimizer,
     lr_scheduler=lr_scheduler,
-    IoU_task="multiclass",
-    IoU_ignore_index=0 # to not consider background in IoU computation
+    ignore_index=0, # not considering background in IoU computation
+    beta=0.5 # fbeta score beta param
 )
 
 # lightning callbacks
