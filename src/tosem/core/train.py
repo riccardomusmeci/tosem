@@ -35,7 +35,6 @@ def easy_train(args: argparse.Namespace):
         **config["dataset"],
         **config["datamodule"],
     )
-
     # creating segmentation model + loss + optimizer + lr_scheduler
     model = create_model(**config["model"])
     loss = JaccardLoss(**config["loss"])
