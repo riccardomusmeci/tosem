@@ -1,5 +1,5 @@
 import os
-from typing import Callable, Tuple
+from typing import Callable, Dict, Tuple
 
 import torch
 from torch.utils.data import Dataset
@@ -14,6 +14,8 @@ class SegmentationDataset(Dataset):
         data_dir (str): data dir
         train (bool): if True it looks for "train" folder, else for "val" folder.
         transform (Callable, optional): augmentation function. Defaults to None.
+        class_map (Dict, optional): map to change some mask pixel value (e.g. from 3 to background, so 0). Defaults to None
+        class_channel (int, optional): which channel the pixel masks are saved (0 -> R, 1 -> G, 2 -> B). Defaults to 0.
         verbose (bool, optional): verbose mode. Defaults to True.
     """
 
@@ -30,7 +32,13 @@ class SegmentationDataset(Dataset):
     )
 
     def __init__(
-        self, data_dir: str, train: bool, transform: Callable = None, class_channel: int = None, verbose: bool = True
+        self,
+        data_dir: str,
+        train: bool,
+        transform: Callable = None,
+        class_map: Dict = None,
+        class_channel: int = None,
+        verbose: bool = True,
     ) -> None:
 
         self.train = train
@@ -49,6 +57,8 @@ class SegmentationDataset(Dataset):
         self.data_dir = os.path.join(data_dir, "train" if train else "val")
         self.images_dir = os.path.join(self.data_dir, "images")
         self.masks_dir = os.path.join(self.data_dir, "masks")
+        # TO-DO -> implement class map
+        self.class_map = class_map
         # loading images and masks
         self.images, self.masks = self._load_samples()
         self.transform = transform
@@ -124,6 +134,9 @@ class SegmentationDataset(Dataset):
         if self.class_channel is not None:
             mask = read_rgb(file_path=mask_path)
             mask = mask[:, :, self.class_channel]
+            # if self.class_map is not None:
+            #     for src_pixel, dst_pixel in self.class_map.items():
+            #         mask[mask==src_pixel] = dst_pixel
         else:
             mask = read_mask(file_path=mask_path) / 255
 
