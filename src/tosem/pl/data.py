@@ -47,6 +47,10 @@ class SegmentationDataModule(pl.LightningDataModule):
         self.pin_memory = pin_memory
         self.drop_last = drop_last
 
+        print("> Dataset Recap")
+        print(f"\t - Class Map: {class_map}")
+        print(f"\t - Class Channel: {class_channel}")
+
     def prepare_data(self) -> None:  # type: ignore
         pass
 
