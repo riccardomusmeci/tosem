@@ -90,7 +90,7 @@ class SegmentationModelModule(pl.LightningModule):
 
         # loss + IoU
         loss = self.loss(logits, mask)
-        self.log("loss_val", loss, sync_dist=True)
+        self.log("loss_val", loss, sync_dist=True, prog_bar=True)
         self.jaccard.update(preds, mask)
         self.f_beta.update(preds, mask)
         self.mse.update(preds, mask)
@@ -112,9 +112,9 @@ class SegmentationModelModule(pl.LightningModule):
         self.f_beta.reset()
         self.mse.reset()
 
-        self.log("IoU_val", iou, prog_bar=True)
-        self.log("fbeta_val", fbeta, prog_bar=True)
-        self.log("mse_val", mse, prog_bar=True)
+        self.log("IoU_val", iou, prog_bar=True, sync_dist=True)
+        self.log("fbeta_val", fbeta, prog_bar=True, sync_dist=True)
+        self.log("mse_val", mse, prog_bar=True, sync_dist=True)
 
     def configure_optimizers(
         self,
