@@ -46,12 +46,11 @@ def create_model(
 
     assert model_name in _FACTORY.keys(), f"{model_name} is not supported. Available models: {list(_FACTORY.keys())}."
 
-    num_classes = num_classes
     model = _FACTORY[model_name](
         encoder_name=encoder_name,
         encoder_weights=weights,
         in_channels=in_channels,
-        classes=num_classes,
+        classes=num_classes if num_classes > 2 else 1,
     )
 
     if ckpt_path is not None:
@@ -64,6 +63,7 @@ def create_model(
         print(f"\t- Backbone: {encoder_name}")
         print(f"\t- Weights from: {weights}")
         print(f"\t- Num classes: {num_classes}")
+        print(f"\t- Task: {'binary' if num_classes < 3 else 'multiclass'}")
         print(f"\t- State Dict from: {ckpt_path}")
 
     return model

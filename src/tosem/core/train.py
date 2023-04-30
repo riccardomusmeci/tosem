@@ -48,7 +48,7 @@ def easy_train(args: argparse.Namespace):
         loss=loss,
         optimizer=optimizer,
         lr_scheduler=lr_scheduler,
-        ignore_index=0,
+        ignore_index=0 if config["model"]["num_classes"] > 2 else None,
         beta=0.5,
     )
 
