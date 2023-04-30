@@ -11,26 +11,27 @@ trainer:
 # ========================== Dataset =============================
 dataset:
   class_map: null
-  class_channel: 0
+  class_channel: null
 
 # =========================== DataModule ==========================
 datamodule:
   batch_size: 8                                           # batch size
   shuffle: true                                           # initial dataset shuffle
-  num_workers: 1                                         # number of data loader workers
+  num_workers: 1                                          # number of data loader workers
   drop_last: true                                         # drop last in training
 
 # =========================== Segmentation Model ==========================
 model:
-  model_name: deeplabv3+                                    # segmentation model name (e.g. unet)
-  encoder_name: timm-efficientnet-b3                      # backbone for segmentation model (e.g. resnet18)
-  num_classes: 13                                         # number of segmentation classes (LEAVE 1)
+  model_name: unet                                        # segmentation model name (e.g. unet)
+  encoder_name: timm-efficientnet-b0                      # backbone for segmentation model (e.g. resnet18)
+  num_classes: 2                                          # number of segmentation classes
   in_channels: 3                                          # number of input image channles
   weights: imagenet                                       # pretrained weight
   verbose: true
 
 loss: # jaccard loss
-  mode: multiclass                                            # binary, multilabel, multiclass
+  mode: binary                                        # binary, multilabel, multiclass
+  from_logits: true
 
 optimizer: # SGD
   lr: 0.0005                                              # learning rate
@@ -61,7 +62,7 @@ transform:
 
 # =========================== Callbacks ==========================
 callbacks:
-  filename: "{epoch}-{step}-{loss_val:.4f}-{IoU_val:.4f}-{fbeta_val:.4f}"   # for cuda
+  filename: "{epoch}-{step}-{loss_val:.4f}-{IoU_val:.4f}-{fbeta_val:.4f}-{mse_val:.4f}"
   monitor: loss_val                                       # metric to monitor
   mode: min                                               # mode to monitor metric
   save_top_k: 5                                           # number of best ckpt to save

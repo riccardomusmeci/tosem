@@ -25,7 +25,7 @@ def easy_train(args: argparse.Namespace):
 
     # Copying config
     os.makedirs(output_dir)
-    copy(args.config, os.path.join(output_dir, "config.yml"))
+    copy(args.config, os.path.join(output_dir, "config.yaml"))
 
     # data module
     pl_datamodule = SegmentationDataModule(
