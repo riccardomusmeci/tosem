@@ -85,7 +85,9 @@ def load_state_dict(ckpt_path: Path, verbose: bool = True) -> Dict:
     Returns:
         Dict: model state dict (layer-weights)
     """
-    ckpt_state_dict = torch.load(ckpt_path, map_location=get_device())["state_dict"]
+    ckpt_state_dict = torch.load(ckpt_path, map_location=get_device())
+    if "state_dict" in ckpt_state_dict.keys():
+        ckpt_state_dict = ckpt_state_dict["state_dict"]
     state_dict = {}
     for key, weights in ckpt_state_dict.items():
         model_key = key.replace("model.", "")
