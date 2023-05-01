@@ -2,6 +2,31 @@ import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 
+from tosem.utils import get_device
+
+
+def prepare_mask(mask: np.array, width: int, height: int, threshold: float = 0.5) -> np.array:
+    """Prepare mask to save
+
+    Args:
+        mask (np.array): mask to save
+        width (int): resize width
+        height (int): resize height
+        threshold (float, optional): mask threshold. Defaults to .5.
+
+    Returns:
+        np.array: prepared mask
+    """
+    if get_device() != "cpu":
+        mask = mask.squeeze().cpu().numpy()
+    else:
+        mask = mask.squeeze().numpy()
+    mask = cv2.resize(mask, (width, height))
+    if threshold is not None:
+        mask[mask >= threshold] = 1
+        mask[mask < threshold] = 0
+    return mask
+
 
 def apply_mask(image: np.array, mask: np.array, alpha: float = 1.0) -> np.array:
     """Apply segmentation masks to an image
@@ -17,7 +42,6 @@ def apply_mask(image: np.array, mask: np.array, alpha: float = 1.0) -> np.array:
     """
     out = image.copy()
     cmap = plt.cm.tab10
-
     for cat_id in np.unique(mask)[1:]:
         bool_mask = mask == cat_id
         color = np.array(cmap(cat_id - 1)[:3]) * 255
