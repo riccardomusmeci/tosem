@@ -5,6 +5,7 @@ Semantic Segmentation library based on PyTorch.
 
 ## **Before starting**
 **tosem** is built on torch
+- segmentation-models-pytorch
 - timm
 - torch
 - pytorch-lightning (easy multi-GPU support)
