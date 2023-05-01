@@ -56,6 +56,9 @@ def save_image(image: np.array, output_path: str):
     """
     output_dir = output_path.replace(os.path.basename(output_path), "")
     os.makedirs(output_dir, exist_ok=True)
+
+    if len(image.shape) > 2:
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     try:
         cv2.imwrite(output_path, image)
     except Exception as e:
