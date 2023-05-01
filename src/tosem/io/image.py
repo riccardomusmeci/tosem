@@ -45,3 +45,18 @@ def read_mask(file_path: Path) -> np.array:
         raise ValueError(f"Unable to read {file_path}.")
 
     return img
+
+
+def save_image(image: np.array, output_path: str):
+    """Save an image at given path making sure the folder exists
+
+    Args:
+        image (np.array): image to save
+        output_path (str): output path
+    """
+    output_dir = output_path.replace(os.path.basename(output_path), "")
+    os.makedirs(output_dir, exist_ok=True)
+    try:
+        cv2.imwrite(output_path, image)
+    except Exception as e:
+        print(f"[ERROR] While saving image at path {output_path} found an error - {e}")
