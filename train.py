@@ -23,6 +23,9 @@ def parse_args() -> argparse.Namespace:
         help="Input data dir path.",
     )
 
+    # TODO: add resume from
+    parser.add_argument("--resume-from", default=None, help="Path to ckpt file to resume training from.")
+
     parser.add_argument("--seed", type=int, default=42, help="random seed for reproducibility")
 
     args = parser.parse_args()

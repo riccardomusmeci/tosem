@@ -21,11 +21,14 @@ def easy_train(args: argparse.Namespace):
 
     pl.seed_everything(seed=args.seed, workers=True)
     config = load_config(config_path=args.config)
-    output_dir = os.path.join(args.output_dir, now())
 
-    # Copying config
-    os.makedirs(output_dir)
-    copy(args.config, os.path.join(output_dir, "config.yaml"))
+    if args.resume_from is not None:
+        output_dir = args.output_dir
+    else:
+        output_dir = os.path.join(args.output_dir, now())
+        os.makedirs(output_dir)
+        # Copying config
+        copy(args.config, os.path.join(output_dir, "config.yaml"))
 
     # data module
     pl_datamodule = SegmentationDataModule(
@@ -52,6 +55,12 @@ def easy_train(args: argparse.Namespace):
         beta=0.5,
     )
 
+    if args.resume_from is not None:
+        print(f"Resume training from: {args.resume_from}")
+        resume_from = args.resume_from
+    else:
+        resume_from = None
+
     # lightning callbacks
     callbacks = Callbacks(output_dir=output_dir, **config["callbacks"])
 
@@ -60,4 +69,4 @@ def easy_train(args: argparse.Namespace):
 
     # fit
     print("Launching training..")
-    trainer.fit(model=pl_model, datamodule=pl_datamodule)
+    trainer.fit(model=pl_model, datamodule=pl_datamodule, ckpt_path=resume_from)
