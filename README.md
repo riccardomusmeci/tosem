@@ -1,6 +1,8 @@
 # **tosem**
 Semantic Segmentation library based on PyTorch.
 
+
+
 ----
 
 ## **Before starting**
@@ -155,8 +157,13 @@ for epoch in range(100):
 ```
 
 ## **Inference**
-Please have a look at *notebooks/inference_visualization.ipynb* notebook to have a look at some predictions based on your model.
-
-
-## **TO-DOs**
-[ ] inference API
+Run inference on your own dataset with:
+```
+python inference.py \
+    --data-dir PATH/TO/YOUR/IMAGES/FOLDER \
+    --config PATH/TO/CONFIG/FILE/FROM/TRAINING \
+    --ckpt PATH/TO/PTH|CKPT/MODEL/WEIGHTS \
+    --output-dir PATH/TO/OUTPUT/MASKS/DIR \
+    --threshold 0.5 \
+    --apply-mask # if specified, creates a folder "applied_masks" in output_dir with original images and output masks applied
+```
