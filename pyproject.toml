@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "tosem"
-version = "0.6.0"
+version = "0.6.1"
 description = "Semantic Segmentation in PyTorch with support to PyTorchLightning"
 authors = ["Riccardo Musmeci <riccardomusmeci92@gmail.com>"]
 readme = "README.md"
