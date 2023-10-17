@@ -1,1 +1,2 @@
-from .dataset import InferenceDataset, SegmentationDataset
+from .inference import InferenceDataset
+from .segmentation import SegmentationDataset

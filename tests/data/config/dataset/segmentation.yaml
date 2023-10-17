@@ -1,0 +1,4 @@
+data_dir: tests/data/train
+transform: null
+engine: pil
+mode: binary

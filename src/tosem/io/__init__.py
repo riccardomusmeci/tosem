@@ -1,2 +1,2 @@
-from .config import load_config
-from .image import read_mask, read_rgb, save_image
+from .config import TosemConfiguration
+from .image import read_binary_mask, read_rgb, save_image
