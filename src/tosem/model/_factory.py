@@ -76,8 +76,13 @@ def load_state_dict(ckpt_path: Union[Path, str], verbose: bool = True) -> Dict:
     Returns:
         Dict: model state dict (weights)
     """
-    device = torch.device("gpu") if torch.cuda.is_available() else torch.device("cpu")
-    ckpt_state_dict = torch.load(ckpt_path, map_location=device)["state_dict"]
+    device = get_device()
+    try:
+        ckpt_state_dict = torch.load(ckpt_path, map_location=device)["state_dict"]
+    except Exception as e:
+        print(f"[WARNING] Found exception {e}")
+        print("Trying on cpu...")
+        ckpt_state_dict = torch.load(ckpt_path, map_location="cpu")["state_dict"]
     state_dict = {}
     for key, weights in ckpt_state_dict.items():
         l = key.replace("model.", "")
