@@ -1,6 +1,6 @@
 # **Changelog**
 
-## [0.1.0] - 2023-04-15
+## [0.6.0] - 2023-10-17
 
 ### Added
-- tosem package
+- First release
