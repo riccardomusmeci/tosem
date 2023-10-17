@@ -1,1 +1,3 @@
-from .model import create_model, list_models
+from .model._factory import create_model
+
+__version__ = "0.6.0"

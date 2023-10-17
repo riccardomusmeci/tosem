@@ -1,19 +1,22 @@
 import os
 from typing import List
 
-import pytorch_lightning
-from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
+from pytorch_lightning.callbacks import (
+    Callback,
+    EarlyStopping,
+    ModelCheckpoint,
+)
 
 
-def callbacks(
+def create_callbacks(
     output_dir: str,
     filename: str = "{epoch}-{step}-{loss_val:.4f}",
     monitor: str = "loss/val",
     mode: str = "min",
     save_top_k: int = 5,
     patience: int = 10,
-) -> List[pytorch_lightning.Callback]:
-    """Return list of callbacks for Trainer
+) -> List[Callback]:
+    """Create list of callbacks for Trainer.
 
     Args:
         output_dir (str): output dir
@@ -24,9 +27,9 @@ def callbacks(
         patience (int, optional): early stopping patience. Defaults to 10.
 
     Returns:
-        List[pytorch_lightning.Callback]: list of Callbacks.
+        List[Callback]: list of PyTorchLightning Callbacks.
     """
-    callbacks = []
+    callbacks: List[Callback] = []
     callbacks.append(
         ModelCheckpoint(
             dirpath=os.path.join(output_dir, "checkpoints"),
@@ -44,7 +47,7 @@ def callbacks(
             min_delta=0.0,
             patience=patience,
             verbose=True,
-            mode="min",
+            mode=mode,
             check_finite=True,
             stopping_threshold=None,
             divergence_threshold=None,

@@ -1,2 +1,2 @@
-from .inference import easy_inference
-from .train import easy_train
+from .predict import predict
+from .train import train

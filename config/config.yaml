@@ -1,69 +1,81 @@
 # =========================== Trainer ==========================
 trainer:
-  accelerator: auto                                        # mps for M1 gpu, cpu, cuda
-  devices: 1                                              # number of GPUs to use (mps supports only 1 device)
-  max_epochs: 100                                         # number of training epochs
-  precision: 16
-  check_val_every_n_epoch: 1
-  gradient_clip_val: null
-  num_sanity_val_steps: 2
+  accelerator: auto                               # auto for M1 gpu, cpu, cuda
+  devices: 1                                      # number of GPUs to use (mps supports only 1 device)
+  max_epochs: 100                                 # number of training epochs
+  precision: 16-mixed                             # 16-mixed or 32 (Automatic Mixed Precision (AMP))
+  check_val_every_n_epoch: 1                      # check validation every n epoch
+  gradient_clip_val: 0                            # gradient clipping value
+  num_sanity_val_steps: 2                         # number of sanity validation steps
+  reload_dataloaders_every_n_epochs: 1            # reload dataloaders every n epochs (0 to disable)
 
-# ========================== Dataset =============================
-dataset:
-  class_map: null
-  class_channel: null
-
-# =========================== DataModule ==========================
+# ========================== Datamodule =============================
 datamodule:
-  batch_size: 8                                           # batch size
-  shuffle: true                                           # initial dataset shuffle
-  num_workers: 1                                          # number of data loader workers
-  drop_last: true                                         # drop last in training
+  engine: pil                                     # engine to use for image loading (pil/cv2)
+  mask_channel: 0                                 # mask channel for multiclass segmentation
+  batch_size: 4                                   # batch size
+  shuffle: true                                   # initial dataset shuffle
+  num_workers: 4                                  # if max/half, number of data loader workers is found automatically; else number of workers
+  persistent_workers: True                        # data loader persistent workers
+  drop_last: true                                 # drop last in training
 
-# =========================== Segmentation Model ==========================
-model:
-  model_name: unet                                        # segmentation model name (e.g. unet)
-  encoder_name: timm-efficientnet-b0                      # backbone for segmentation model (e.g. resnet18)
-  num_classes: 2                                          # number of segmentation classes
-  in_channels: 3                                          # number of input image channles
-  weights: imagenet                                       # pretrained weight
-  verbose: true
+# =========================== Logger ==============================
+logger:
+  save_dir: tb_logs                               # directory to save logs (saved in output_dir/tb_logs)
+  name: lyft-timm-regnety_040                     # name of the experiment
+  default_hp_metric: false                        # log default hp metric
 
-loss: # jaccard loss
-  mode: binary                                        # binary, multilabel, multiclass
-  from_logits: true
-
-optimizer: # SGD
-  lr: 0.0005                                              # learning rate
-  momentum: 0.9                                           # momentum
-  weight_decay: 0                                         # weight decay
-
-lr_scheduler:
-  T_0: 10                                                 # number of iterations for the first restart (e.g. 10 means afer 10 epochs)
-  T_mult: 2                                               # a factor increases t_i after a restart
-  eta_min: 0                                              # minimum learning rate
-
-# =========================== Data Augmentations ==========================
-transform:
-  input_size: [512, 512]                                  # model input size (int, list, tuple)
-  hflip_p: .5                                             # horizontal flip probability
-  scale_limit: 0.5                                        # rescaling limit
-  rotate_limit: 0                                         # rotation limit
-  shift_limit: 0.1                                        # shift limit
-  random_crop_p: 0.5                                      # random crop prob
-  shift_scale_rotate_p: 1                                 # shift scale and rotate probability
-  border_mode: 0                                          # filling borders with value
-  gauss_noise_p: 0.5                                      # gaussian noise probability
-  perspective_p: 0.5                                      # perspective transformation probability
-  one_of_p: 0.9                                           # probabilty of selecting one of CLAHE, RandomBrighntessCotrast, and RandomGamma
-  blur_limit: 3                                           # gaussian blur limit
-  mean: [0.485, 0.456, 0.406]                             # to not apply normalization put [0, 0, 0]
-  std: [0.229, 0.224, 0.225]                              # to not apply normalization put [1, 1, 1]
 
 # =========================== Callbacks ==========================
 callbacks:
-  filename: "{epoch}-{step}-{loss_val:.4f}-{IoU_val:.4f}-{fbeta_val:.4f}-{mse_val:.4f}"
-  monitor: loss_val                                       # metric to monitor
-  mode: min                                               # mode to monitor metric
-  save_top_k: 5                                           # number of best ckpt to save
-  patience: 10
+  filename: "{epoch}-{step}-{loss_val:.4f}-{IoU_val:.4f}"  # model filename
+  monitor: loss_val                                        # metric to monitor
+  mode: min                                                # mode to monitor metric
+  save_top_k: 5                                            # number of best ckpt to save
+  patience: 10                                             # early stopping patience
+
+
+# =========================== Segmentation Model ==========================
+model:
+  model_name: unet                                # segmentation model name (e.g. unet)
+  encoder_name: timm-regnety_040                  # backbone for segmentation model (e.g. resnet18)
+  num_classes: 13                                 # number of segmentation classes
+  in_channels: 3                                  # number of input image channles
+  weights: imagenet                               # pretrained weight
+  verbose: true                                   # verbose mode
+
+# =========================== Loss ==========================
+loss:
+  loss: jaccard                                   # loss name
+  mode: multiclass                                # binary, multilabel, multiclass
+  classes: null                                   # list of classes to calculate loss
+  log_loss: false                                 # log loss
+  from_logits: true                               # from logits
+  smooth: 0.0                                     # smooth
+  eps: 0.00000001                                 # eps
+
+# =========================== Optimizer ==========================
+optimizer: # SGD
+  optimizer: sgd                                  # optimizer name
+  lr: 0.005                                       # learning rate
+  momentum: 0.9                                   # momentum
+  weight_decay: 0                                 # weight decay
+
+# =========================== LR Scheduler ==========================
+lr_scheduler:
+  lr_scheduler: cosine_annealing_warm_restarts    # learning rate scheduler name
+  T_0: 10                                         # number of iterations for the first restart (e.g. 10 means afer 10 epochs)
+  T_mult: 2                                       # a factor increases t_i after a restart
+  eta_min: 0                                      # minimum learning rate
+
+# =========================== Data Augmentations ==========================
+transform:
+  input_size: [512, 512]                          # model input size (int, list, tuple)
+  mean: [0.485, 0.456, 0.406]                     # to not apply normalization put [0, 0, 0]
+  std: [0.229, 0.224, 0.225]                      # to not apply normalization put [1, 1, 1]
+  interpolation: 3                                # interpolation mode
+  pad_border_mode: 0                              # padding border mode
+  random_crop_prob: 0.5                           # random crop prob
+  horizontal_flip_prob: .2                        # horizontal flip probability
+  vertical_flip_prob: 0.5                         # vertical flip probability
+  rotate_90_prob: 0.1                             # rotate 90 degrees probability

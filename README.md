@@ -1,125 +1,131 @@
 # **tosem**
-Semantic Segmentation library based on PyTorch.
+PyTorch Semantic Segmentation library with support to PyTorch Lightning and easy access to experiment with your own dataset.
+
+## **How to install 🔨**
+```
+git clone https://github.com/riccardomusmeci/tosem
+cd tosem
+pip install .
+```
 
 
+## **Concepts 💡**
+tosem tries to avoid writing again, again, and again (and again) the same code to train, test and make predictions with a semantic segmentation model.
 
-----
+tosem works in three different ways:
+* fully automated with configuration files 🚀
+* semi-automated with full support to PyTorch Lightning ⚡️
+* I-want-to-write-my-own-code-but-also-using-tosem 🧑‍💻
 
-## **Before starting**
-**tosem** is built on torch
-- segmentation-models-pytorch
-- timm
-- torch
-- pytorch-lightning (easy multi-GPU support)
-- torchmetrics
+### **TosemConfiguration 📄**
+With TosemConfiguration file you don't need to write any code for training an inference.
+
+A configuration file is like the on in config/config.yaml.
 
 ## **Train**
 
-### **Easy mode**
-Training a semantic segmentation can be easily accessed with:
+### **Dataset Structure**
+tosem dataset must have the following structure:
 ```
-python train.py \
-    --data-dir PATH/TO/YOUR/TRAIN/DATASET \
-    --config config/config.yaml \
-    --output-dir PATH/TO/YOUR/OUTPUT/DIR
-    --seed 42
-```
-The YAML configuration file contains a lot of params to configure. Go check the default one in *config/config.yaml*.
+dataset
+      |__train
+      |       |__images
+      |       |        |__img_1.jpg
+      |       |        |__img_2.jpg
+      |       |        |__ ...
+      |       |___masks
+      |                |__img_1.png
+      |                |__img_2.png
+      |____val
+              |__images
+              |        |__img_1.jpg
+              |        |__img_2.jpg
+              |        |__ ...
+              |___masks
+                       |__img_1.png
+                       |__img_2.png
 
-### **PyTorch-Lightning Code Mode**
-**tosem** has some pre-built modules based on PyTorch-Lightning to speed up experiments.
+```
+
+In `binary` mode, each mask has shape (W, H).
+
+In `multiclass` mode, each mask has shape (W, H, 3) and it must be specified the mask channel. For instance, if the mask values are in the second channel, then `mask_channel=1`.
+
+### **Fully Automated 🚀**
+Once configuration experiment file is ready, just use tosem like this:
 
 ```python
-import pytorch_lightning as pl
+from tosem.core import train
+
+train(
+    config_path="PATH/TO/CONFIG.YAML",
+    train_data_dir="PATH/TO/TRAIN/DATA/DIR",
+    val_data_dir="PATH/TO/VAL/DATA/DIR",
+    output_dir="PATH/TO/OUTPUT/DIR",
+    resume_from="PATH/TO/CKPT/TO/RESUME/FROM", # this is when you want to start retraining from a Lightning ckpt
+)
+```
+
+### **Semi-Automated ⚡️**
+tosem delivers some pre-built modules based on PyTorch-Lightning to speed up experiments.
+
+```python
 from tosem import create_model
-from tosem.io import load_config
-from tosem.pl import Callbacks, SegmentationDataModule, SegmentationModelModule
 from tosem.transform import Transform
-from pytorch_toolbelt.losses import JaccardLoss
-from torch.optim import SGD
-from torch.optim.lr_scheduler import CosineAnnealingWarmRestarts
+from tosem.loss import create_criterion
+from tosem.optimizer import create_optimizer
+from tosem.lr_scheduler import create_lr_scheduler
+from tosem.pl import create_callbacks
+from pytorch_lightning import Trainer
+from tosem.pl import SegmentationDataModule, SegmentationModelModule
 
-# data module
-pl_datamodule = SegmentationDataModule(
-    data_dir=args.data_dir,
-    train_transform=Transform(
-        train=True,
-        input_size=512,
-        ... # check the config.yaml file to look for params ('transform' section)
-    ),
-    val_transform=Transform(
-        train=False,
-        input_size=512,
-        ... # check the config.yaml file to look for params ('transform' section)
-    ),
-    ...
+# Setting up datamodule, model, callbacks, logger, and trainer
+datamodule = SegmentationDataModule(
+    train_data_dir=...,
+    val_data_dir=...,
+    train_transform=Transform(train=True, ...),
+    val_transform=Transform(train=False, ...,
+    mode="binary" # multiclass
+    ...,
 )
-
-# creating segmentation model + loss + optimizer + lr_scheduler
-model = create_model(
-    model_name="unet",
-    encoder_name="resnet18",
-    num_classes=10,
-    ckpt_path=... # you can directly load your trained model
-)
-loss = JaccardLoss(...)
-optimizer = SGD(model.parameters(), ...)
-lr_scheduler = CosineAnnealingWarmRestarts(optimizer=optimizer, ...)
-
-# segmentation pl.LightningModule
+model = create_model("unet", encoder_name="resnet18", weights="ssl")
+criterion = create_criterion("jaccard", ...)
+optimizer = create_optimizer(params=model.parameters(), optimizer="sgd", lr=.001, ...)
+lr_scheduler = create_lr_scheduler(optimizer=optimizer, ...)
 pl_model = SegmentationModelModule(
     model=model,
-    num_classes=10,
-    loss=loss,
+    num_classes=1,
+    loss=criterion,
     optimizer=optimizer,
     lr_scheduler=lr_scheduler,
-    ignore_index=0, # not considering background in IoU computation
-    beta=0.5 # fbeta score beta param
+    mode="binary",
 )
+callbacks = create_callbacks(output_dir=..., ...)
+trainer = Trainer(callbacks=callbacks, ...)
 
-# lightning callbacks
-callbacks = Callbacks(output_dir=output_dir, ...)
-
-# trainer
-trainer = pl.Trainer(logger=False, callbacks=callbacks, ...)
-
-# fit
-print("Launching training..")
-trainer.fit(model=pl_model, datamodule=pl_datamodule)
+# Training
+trainer.fit(model=pl_model, datamodule=datamodule)
 ```
 
-### **PyTorch Code Mode**
-If you don't like PyTorch-Lightning you can always use the class PyTorch mode to train your model. You can always use the modules from tosem to speed-up experiments.
+### **I want to write my own code 🧑‍💻**
+Use tosem `SegmentationDataset`, `Transform`, and `create_stuff` functions to write your own training loop.
 
 ```python
-from pytorch_toolbelt.losses import JaccardLoss
-from torch.optim import SGD
 from tosem.transform import Transform
 from tosem.dataset import SegmentationDataset
 from tosem import create_model
-from pytorch_toolbelt.losses import JaccardLoss
-from torch.optim import SGD
-from torchmetrics import JaccardIndex as IoU
+from tosem.loss import create_loss
+from tosem.optimizer import create_optimizer
 from torch.utils.data import DataLoader
-from tosem.utils import get_device
 import torch
 
-device = get_device()
 train_dataset = SegmentationDataset(
     data_dir=data_dir,
     train=True,
     transform=Transform(train=True, input_size=224),
     class_channel=0
 )
-val_dataset = SegmentationDataset(
-    data_dir=data_dir,
-    train=False,
-    transform=Transform(train=False, input_size=224),
-    class_channel=0
-)
-
 train_dl = DataLoader(dataset=train_dataset, batch_size=16)
-val_dl = DataLoader(dataset=val_dataset, batch_size=16)
 
 model = create_model(
     model_name="unet",
@@ -127,43 +133,43 @@ model = create_model(
     num_classes=10,
     weights="noisy-student",
 )
+criterion = create_loss(loss="dice", mode="multiclass")
+optimizer = create_optimizer(params=model.parameters(), optimizer="sgd", lr=0.0005)
 
-criterion = JaccardLoss(mode="multiclass" if num_classes>2 else "binary")
-optimizer = SGD(model.parameters(), lr=0.0005)
-iou = IoU(task="multiclass", num_classes=num_classes, ignore_index=0).to(device)
-
-model.to(device)
-for epoch in range(100):
+for epoch in range(NUM_EPOCHS):
     model.train()
     for batch in train_dl:
         optimizer.zero_grad()
-        x, mask = (el.to(device) for el in batch)
+        x, mask = batch
         logits = model(x)
         loss = criterion(preds, mask)
         loss.backward()
         optimizer.step()
-    model.eval()
-    for batch in val_dl:
-        x, mask = (el.to(device) for el in batch)
-        logits = model(x)
-        if num_classes == 2:
-            preds = torch.sigmoid(logits)
-        else:
-            preds = torch.softmax(logits, dim=1)
-        preds = torch.argmax(preds, dim=1, keepdim=True)
-        iou.update(preds, mask)
-    print(f"val IoU: {iou.compute()}")
-    iou.reset()
 ```
 
-## **Inference**
-Run inference on your own dataset with:
-```
-python inference.py \
-    --data-dir PATH/TO/YOUR/IMAGES/FOLDER \
-    --config PATH/TO/CONFIG/FILE/FROM/TRAINING \
-    --ckpt PATH/TO/PTH|CKPT/MODEL/WEIGHTS \
-    --output-dir PATH/TO/OUTPUT/MASKS/DIR \
-    --threshold 0.5 \
-    --apply-mask # if specified, creates a folder "applied_masks" in output_dir with original images and output masks applied
+## **Inference 🧐**
+Also in inference mode, you can pick between "fully automated", "semi-automated", "write my own code" mode.
+
+
+### **Fully Automated 🚀**
+Once the train is over, you'll find a *config.yaml* file merging all the setups from different sections.
+
+```python
+from tosem.core import predict
+
+predict(
+    ckpt_path="PATH/TO/OUTPUT/DIR/checkpoints/model.ckpt",
+    config_path="PATH/TO/OUTPUT/DIR/config.yaml",
+    images_dir="PATH/TO/IMAGES",
+    output_dir="PATH/TO/OUTPUT/DIR/predictions", # you can choose your own path
+    mask_threshold=0.5, # if "binary" pick your own val, None if mode=="multiclass"
+    apply_mask=True, # it will apply masks to original images
+    alpha_mask=0.6, # blending images and masks alpha value
+    exclude_classes=[0, 2, 3], # if your want to exclude some classes from applying masks to original images
+    class_map={  # color map for classes to keep
+            1: ["building", (70, 70, 70)],
+            4: ["pedestrian", (220, 20, 60)],
+            5: ["pole", (153, 153, 153)],
+        },
+    )
 ```

@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Callable, Dict, List, Optional, Union
 
 import pytorch_lightning as pl
@@ -5,84 +6,95 @@ from torch.utils.data import DataLoader
 
 from tosem.dataset import SegmentationDataset
 
+from ..utils import get_num_workers
+
 
 class SegmentationDataModule(pl.LightningDataModule):
-    """Segmentation Lightning DataModule
+    """Segmentation Data Module from PyTorch Lightning.
 
     Args:
-        data_dir (str): data dir
-        batch_size (int): batch size
-        train_transform (Callable): train augmentations
-        val_transform (Callable): val augmentations
-        class_map (Dict, optional): map to change some mask pixel value (e.g. from 3 to background, so 0). Defaults to None
-        class_channel (int, optional): which channel the pixel masks are saved (0 -> R, 1 -> G, 2 -> B). Defaults to 0.
-        shuffle (bool, optional): if True, shuffles dataset. Defaults to True.
-        num_workers (int, optional): data loader num workers. Defaults to 1.
-        pin_memory (bool, optional): data loader pin memory. Defaults to False.
-        drop_last (bool, optional): data loader drop last. Defaults to False.
+        train_data_dir (str): path to train dataset
+        val_data_dir (str): path to val dataset
+        train_transform (Callable): train transform function
+        val_transform (Callable): validation transform function
+        mode (str): segmentation mode (binary/multiclass/multilabel).
+        mask_channel (int, optional): mask channel if mode is "multiclass". Defaults to 0.
+        engine (str, optional): image loading engine (pil/cv2). Defaults to "pil".
+        batch_size (int, optional): DataLoader batch size. Defaults to 8.
+        shuffle (bool, optional): whether to shuffle the dataset in training. Defaults to True.
+        num_workers (Union[str, int], optional): number of workers for DataLoader. If full/half the number is found based num cpus. Defaults to "full".
+        persistent_workers (bool, optional): persistent workers for DataLoader. Defaults to True.
+        pin_memory (bool, optional): DataLoader pin memory. Defaults to False.
+        drop_last (bool, optional): whether to drop the last batch in training. Defaults to False.
+        verbose (bool, optional): verbose mode. Defaults to True.
     """
 
     def __init__(
         self,
-        data_dir: str,
-        batch_size: int,
+        train_data_dir: Union[Path, str],
+        val_data_dir: Union[Path, str],
         train_transform: Callable,
         val_transform: Callable,
-        class_map: Dict = None,
-        class_channel: int = 0,
+        mode: str,
+        mask_channel: int = 0,
+        engine: str = "pil",
+        batch_size: int = 8,
         shuffle: bool = True,
-        num_workers: int = 1,
+        num_workers: Union[str, int] = "half",
+        persistent_workers: bool = True,
         pin_memory: bool = False,
         drop_last: bool = False,
+        verbose: bool = True,
     ):
         super().__init__()
-        self.data_dir = data_dir
-        self.batch_size = batch_size
+        self.train_data_dir = train_data_dir
+        self.val_data_dir = val_data_dir
         self.train_transform = train_transform
         self.val_transform = val_transform
-        self.class_map = class_map
-        self.class_channel = class_channel
+        self.mode = mode
+        self.mask_channel = mask_channel
+        self.engine = engine
+        self.batch_size = batch_size
         self.shuffle = shuffle
-        self.num_workers = num_workers
+        self.num_workers = get_num_workers(num_workers) if isinstance(num_workers, str) else num_workers
         self.pin_memory = pin_memory
+        self.persistent_workers = persistent_workers
         self.drop_last = drop_last
+        self.verbose = verbose
 
-    def prepare_data(self) -> None:  # type: ignore
+    def prepare_data(self) -> None:
+        """Prepare data."""
         pass
 
     def setup(self, stage: Optional[str] = None) -> None:
-        """loads the data
+        """Load the data.
 
         Args:
             stage (Optional[str], optional): pipeline stage (fit, validate, test, predict). Defaults to None.
         """
         if stage == "fit" or stage is None:
             self.train_dataset = SegmentationDataset(
-                data_dir=self.data_dir,
-                train=True,
+                data_dir=self.train_data_dir,
                 transform=self.train_transform,
-                class_map=self.class_map,
-                class_channel=self.class_channel,
+                mode=self.mode,
+                mask_channel=self.mask_channel,
+                engine=self.engine,
             )
 
             self.val_dataset = SegmentationDataset(
-                data_dir=self.data_dir,
-                train=False,
+                data_dir=self.val_data_dir,
                 transform=self.val_transform,
-                class_map=self.class_map,
-                class_channel=self.class_channel,
+                mode=self.mode,
+                mask_channel=self.mask_channel,
+                engine=self.engine,
             )
 
-        if stage == "test" or stage is None:
-            self.test_dataset = SegmentationDataset(
-                data_dir=self.data_dir,
-                train=False,
-                transform=self.val_transform,
-                class_map=self.class_map,
-                class_channel=self.class_channel,
-            )
+    def train_dataloader(self) -> DataLoader:
+        """Train dataloader.
 
-    def train_dataloader(self) -> Union[DataLoader, List[DataLoader], Dict[str, DataLoader]]:
+        Returns:
+            DataLoader: train data loader
+        """
         return DataLoader(
             dataset=self.train_dataset,
             batch_size=self.batch_size,
@@ -90,19 +102,15 @@ class SegmentationDataModule(pl.LightningDataModule):
             num_workers=self.num_workers,
             pin_memory=self.pin_memory,
             drop_last=self.drop_last,
+            persistent_workers=self.persistent_workers,
         )
 
-    def val_dataloader(self) -> Union[DataLoader, List[DataLoader]]:
-        return DataLoader(
-            dataset=self.val_dataset,
-            batch_size=self.batch_size,
-            shuffle=False,
-            num_workers=self.num_workers,
-            pin_memory=self.pin_memory,
-            drop_last=False,
-        )
+    def val_dataloader(self) -> DataLoader:
+        """Validation dataloader.
 
-    def test_dataloader(self) -> Union[DataLoader, List[DataLoader]]:
+        Returns:
+            DataLoader: validation data loader
+        """
         return DataLoader(
             dataset=self.val_dataset,
             batch_size=self.batch_size,

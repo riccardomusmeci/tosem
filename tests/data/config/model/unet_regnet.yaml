@@ -1,0 +1,6 @@
+model_name: unet                       # segmentation model name (e.g. unet)
+encoder_name: timm-regnety_040         # backbone for segmentation model (e.g. resnet18)
+num_classes: 13                        # number of segmentation classes
+in_channels: 3                         # number of input image channles
+weights: imagenet                      # pretrained weight
+verbose: true                          # verbose mode
